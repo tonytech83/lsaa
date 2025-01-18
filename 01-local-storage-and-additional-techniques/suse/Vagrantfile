@@ -1,0 +1,54 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+$system_update = <<SCRIPT
+
+RC='\033[0m'
+RED='\033[31m'
+YELLOW='\033[33m'
+CYAN='\033[36m'
+GREEN='\033[32m'
+
+# Detect the distribution type using /etc/os-release
+DTYPE="unknown"  # Default to unknown
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    DTYPE=$ID
+fi
+
+printf "%b\n" "${RED}***${RC} Installing distribution updates ..."
+
+# Preconfigure postfix to suppress interactive prompts
+echo "postfix postfix/mailname string vagrant.local" | sudo debconf-set-selections
+echo "postfix postfix/main_mailer_type string 'No configuration'" | sudo debconf-set-selections
+
+if [ "$DTYPE" = "debian" ]; then
+    sudo apt-get update && sudo apt-get upgrade -y
+elif [ "$DTYPE" = "opensuse-leap" ]; then
+    sudo zypper refresh && sudo zypper update -y
+elif [ "$DTYPE" = "almalinux" ]; then
+    sudo dnf update -y
+else
+    echo "Unsupported distribution: $DTYPE"
+fi
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  # OpenSUSE
+  config.vm.define "suse" do |suse|
+    suse.vm.box = "tonytech/suse-leap-15-6"
+    suse.vm.box_version = "0.0.1"
+    suse.vm.hostname = "suse.homework.lab"
+    suse.vm.network "private_network", ip: "192.168.99.102"
+    suse.vm.provision "shell", inline: $system_update
+
+    (0..5).each do |i|
+        suse.vm.disk :disk, size: "5GB", name: "suse-disk-#{i}"
+    end
+    
+  end
+
+end

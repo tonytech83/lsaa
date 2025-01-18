@@ -39,29 +39,16 @@ Vagrant.configure("2") do |config|
 
   # Debian 
   config.vm.define "debian" do |debian|
-    debian.vm.box = "generic/debian12"
-    debian.vm.box_version = "4.3.12"
+    debian.vm.box = "tonytech/debian-12-9"
+    debian.vm.box_version = "1.0.0"
     debian.vm.hostname = "debian.homework.lab"
     debian.vm.network "private_network", ip: "192.168.99.101"
     debian.vm.provision "shell", inline: $system_update
-  end
 
-  # OpenSUSE
-  config.vm.define "suse" do |suse|
-    suse.vm.box = "generic/opensuse15"
-    suse.vm.box_version = "4.3.12"
-    suse.vm.hostname = "suse.homework.lab"
-    suse.vm.network "private_network", ip: "192.168.99.102"
-    suse.vm.provision "shell", inline: $system_update
-  end
+    (0..5).each do |i|
+        debian.vm.disk :disk, size: "5GB", name: "deb-disk-#{i}"
+    end
 
-  # AlmaLinux
-  config.vm.define "alma" do |alma|
-    alma.vm.box = "generic/alma9"
-    alma.vm.box_version = "4.3.12"
-    alma.vm.hostname = "alma.homework.lab"
-    alma.vm.network "private_network", ip: "192.168.99.103"
-    alma.vm.provision "shell", inline: $system_update
   end
 
 end
