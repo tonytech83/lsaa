@@ -1,21 +1,18 @@
 ## Create a RAID10-based pool in ZFS out of six devices each 5 GB in size. Do it in two different configurations – 3x2 and 2x3
 ### Preparations
-1. Add the ZFS on Linux repository
+1. Add the ZFS on Linux repository and refresh
 ```sh
-$ sudo dnf install https://zfsonlinux.org/epel/zfs-release-2-3.el9.noarch.rpm
-$ sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-openzfs-el-9
+$ sudo zypper addrepo https://download.opensuse.org/repositories/filesystems/15.6/filesystems.repo
+$ sudo zypper refresh
 ```
-2. Install the **kABI-tracking** kmods the default repository in the /etc/yum.repos.d/zfs.repo file must be switch from **zfs** to **zfs-kmod**
+2. Install the ZFS packages
 ```sh
-$ sudo dnf config-manager --enable zfs-kmod
+$ sudo zypper install zfs
 ```
-3. Install the ZFS packages
-```sh
-$ sudo dnf install zfs
-```
-4. Autoload the module
+3. Autoload the module
 ```sh
 $ echo "zfs" | sudo tee -a /etc/modules-load.d/zfs.conf
+$ echo "allow_unsupported_modules 1" | sudo tee /etc/modprobe.d/10-unsupported-modules.conf
 ```
 #### Creating 3x2 Configuration (three mirrored pairs)
 Each mirrored pair is created using two devices, and then the three pairs are striped.
@@ -91,6 +88,38 @@ $ sudo mkdir -p /homework/zfs-raid6
 ```sh
 $ sudo zpool create -m /homework/zfs-raid6 raid6_pool raidz2 /dev/sdb /dev/sdc /dev/sdd /dev/sde /dev/sdf
 
+$ lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0   10G  0 disk
+├─sda1   8:1    0    8M  0 part
+└─sda2   8:2    0   10G  0 part /var
+                                /usr/local
+                                /tmp
+                                /srv
+                                /root
+                                /opt
+                                /home
+                                /boot/grub2/x86_64-efi
+                                /boot/grub2/i386-pc
+                                /
+sdb      8:16   0    5G  0 disk
+├─sdb1   8:17   0    5G  0 part
+└─sdb9   8:25   0    8M  0 part
+sdc      8:32   0    5G  0 disk
+├─sdc1   8:33   0    5G  0 part
+└─sdc9   8:41   0    8M  0 part
+sdd      8:48   0    5G  0 disk
+├─sdd1   8:49   0    5G  0 part
+└─sdd9   8:57   0    8M  0 part
+sde      8:64   0    5G  0 disk
+├─sde1   8:65   0    5G  0 part
+└─sde9   8:73   0    8M  0 part
+sdf      8:80   0    5G  0 disk
+├─sdf1   8:81   0    5G  0 part
+└─sdf9   8:89   0    8M  0 part
+sdg      8:96   0    5G  0 disk
+sr0     11:0    1 1024M  0 rom
+
 $ sudo zpool status raid6_pool
   pool: raid6_pool
  state: ONLINE
@@ -112,29 +141,11 @@ errors: No known data errors
 $ sudo touch /homework/zfs-raid6/testfile
 $ ls -l /homework/zfs-raid6/
 total 1
--rw-r--r--. 1 root root 0 Jan 18 15:15 testfile
+-rw-r--r-- 1 root root 0 Jan 18 15:17 testfile
 ```
 4. Clean up
 ```sh
 $ sudo umount /homework/zfs-raid6
 $ sudo zpool destroy raid6_pool
 $ sudo wipefs --all /dev/sd[b-f]
-```
-## Research on how to use a key file to automount an encrypted volume on boot and demonstrate it for one drive
-1. Check is crypt module is available
-```sh
-$ grep -i DM_CRYPT /boot/config-$(uname -r)
-CONFIG_DM_CRYPT=m
-```
-2. Load the module
-```sh
-$ sudo modprobe dm_crypt
-
-$ sudo lsmod | grep dm_crypt
-dm_crypt               69632  0
-dm_mod                249856  10 dm_crypt,dm_log,dm_mirror
-```
-3. Install crypt tools
-```sh
-sudo dnf install cryptsetup
 ```
