@@ -19,7 +19,7 @@ Machine(s) can be with or without graphical environment
 Network settings shown on the picture reflect the ones used during the
 demonstration. You should adjust them according to your setup
 
-## Part 1: Local Storage {#part-1-local-storage .list-paragraph}
+## Part 1: Local Storage
 
 Make sure, that you have prepared the required set of folders
 
@@ -55,7 +55,7 @@ There is a faster and script-ready way. Let's execute the following for
 **sdc** drive
 
 ```sh
-sudo parted -s /dev/sdc \-- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+sudo parted -s /dev/sdc -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
 ```
 
 _If the **parted** tool is not part of your installation, then install
@@ -72,9 +72,9 @@ Both partitions should look the same
 We can process the other two drives following the second approach
 
 ```sh
-sudo parted -s /dev/sdd \-- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+sudo parted -s /dev/sdd -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
 
-sudo parted -s /dev/sde \-- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+sudo parted -s /dev/sde -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
 ```
 
 Now, we have our drives ready
@@ -88,14 +88,14 @@ sudo zypper install mdadm
 We can receive usage information for the **mdadm** with
 
 ```sh
-sudo mdadm \--help
+sudo mdadm --help
 ```
 
 In order to ask for a specific set of commands, for example for array
 creation, execute
 
 ```sh
-sudo mdadm \--create \--help
+sudo mdadm --create --help
 ```
 
 #### RAID 0
@@ -120,19 +120,19 @@ default value
 Let's change it, but first we will stop our array
 
 ```sh
-sudo mdadm \--stop /dev/md0
+sudo mdadm --stop /dev/md0
 ```
 
 Erase the MD superblocks from the devices
 
 ```sh
-sudo mdadm \--zero-superblock /dev/sd{b,c}1
+sudo mdadm --zero-superblock /dev/sd{b,c}1
 ```
 
 Use the following command to create a new array with **128k** chunks
 
 ```sh
-sudo mdadm \--create /dev/md0 \--level 0 \--chunk 128 \--raid-devices 2 /dev/sd{b,c}1
+sudo mdadm --create /dev/md0 --level 0 --chunk 128 --raid-devices 2 /dev/sd{b,c}1
 ```
 
 Alternative approach to check the status of an array is to use
@@ -537,7 +537,7 @@ sudo lvextend -L 10G /dev/vg_demo/lv_demo
 _The same can be written without the space_
 
 ```sh
-_sudo lvextend -L10G /dev/vg_demo/lv_demo_
+sudo lvextend -L10G /dev/vg_demo/lv_demo
 ```
 
 Extending can be done with an amount of space to be added (thus the plus
@@ -782,8 +782,7 @@ Now, let's create a volume with
 sudo lvcreate -V 5G --thin -n tp_demo_lv vg_demo/tp_demo
 ```
 
-_Because we asked for more space than actually available, we got a
-warning_
+_Because we asked for more space than actually available, we got a warning_
 
 We can ask for list of volumes with
 
@@ -870,13 +869,13 @@ sudo umount /storage/lvm\*
 Next, delete the volume group together with all logical volumes
 
 ```sh
-sudo vgremove vg_demo \--force
+sudo vgremove vg_demo --force
 ```
 
 Wipe all four drives
 
 ```sh
-sudo wipefs \--all /dev/sd\[b-e\]
+sudo wipefs --all /dev/sd\[b-e\]
 ```
 
 ## Part 2: Advanced Filesystems {#part-2-advanced-filesystems .list-paragraph}
@@ -1083,30 +1082,39 @@ sudo touch /storage/btrfs/svol/empty_file
 
 And check the hierarchy
 
-**tree /storage/btrfs**
+```sh
+tree /storage/btrfs
+```
 
 Let's create another mount point for the subvolume
 
-**sudo mkdir -p /storage/btrfs-svol**
+```sh
+sudo mkdir -p /storage/btrfs-svol
+```
 
 And mount it there
 
-**sudo mount -o subvolid=\<ID\> /dev/sdb /storage/btrfs-svol**
+```sh
+sudo mount -o subvolid=\<ID\> /dev/sdb /storage/btrfs-svol
+```
 
-_Change the **\<ID\>** to what you saw as output of the **subvolume
-list** command_
+_Change the **\<ID\>** to what you saw as output of the **subvolume list** command_
 
 Now, if we execute the standard command **df** we will see something
 strange at first look
 
-**df -hT**
+```sh
+df -hT
+```
 
-\*Instead, we can use **btrfs filesystem df** or **btrfs filesystem du\***
+_Instead, we can use **btrfs filesystem df** or **btrfs filesystem du**_
 
 Should we want to delete a subvolume, first we must make sure that it is
 empty and then use (**skip it for now**)
 
-**sudo btrfs subvolume delete /storage/btrfs/svol**
+```sh
+sudo btrfs subvolume delete /storage/btrfs/svol
+```
 
 #### Snapshots
 
@@ -1115,26 +1123,35 @@ current state of another subvolume
 
 Let's create a simple text file
 
-**echo \'Hello BTRFS\' \| sudo tee /storage/btrfs/hello.txt**
+```sh
+echo \'Hello BTRFS\' \| sudo tee /storage/btrfs/hello.txt
+```
 
 And then create a snapshot of the main (root) BTRFS volume
 
-**sudo btrfs subvolume snapshot /storage/btrfs /storage/btrfs/snap**
+```sh
+sudo btrfs subvolume snapshot /storage/btrfs /storage/btrfs/snap
+```
 
 Check the directory hierarchy
 
-**tree /storage/btrfs**
+```sh
+tree /storage/btrfs
+```
 
 Change the original text file
 
-**echo \'\... some additional text\' \| sudo tee -a
-/storage/btrfs/hello.txt**
+```sh
+echo '... some additional text' | sudo tee -a /storage/btrfs/hello.txt
+```
 
 Check the content of both files
 
-**cat /storage/btrfs/hello.txt**
+```sh
+cat /storage/btrfs/hello.txt
 
-**cat /storage/btrfs/snap/hello.txt**
+cat /storage/btrfs/snap/hello.txt
+```
 
 _The snapshot data is unchanged_
 
@@ -1143,11 +1160,15 @@ snapshot (either by mounting it as a regular filesystem or directly)
 
 Unmount all BTRFS filesystems
 
-**sudo umount /storage/btrfs /storage/btrfs-svol**
+```sh
+sudo umount /storage/btrfs /storage/btrfs-svol
+```
 
 And clean the devices
 
-**sudo wipefs \--all /dev/sd{b..e}**
+```sh
+sudo wipefs \--all /dev/sd{b..e}
+```
 
 ### Advanced Filesystems (ZFS)
 
@@ -1155,56 +1176,76 @@ Let's continue with ZFS on Linux (or OpenZFS)
 
 Add the ZFS on Linux repository
 
-**sudo zypper addrepo
-https://download.opensuse.org/repositories/filesystems/15.6/filesystems.repo**
+```sh
+sudo zypper addrepo https://download.opensuse.org/repositories/filesystems/15.6/filesystems.repo
+```
 
 Refresh repositories
 
-**sudo zypper refresh**
+```sh
+sudo zypper refresh
+```
 
 Install the necessary packages
 
-**sudo zypper install zfs**
+```sh
+sudo zypper install zfs
+```
 
 Execute the following to autoload the module
 
-**echo \"zfs\" \| sudo tee -a /etc/modules-load.d/zfs.conf**
+```sh
+echo \"zfs\" \| sudo tee -a /etc/modules-load.d/zfs.conf
+```
 
 _You may need to execute the following as well_
 
-**_echo \"allow_unsupported_modules 1\" \| sudo tee
-/etc/modprobe.d/10-unsupported-modules.conf_**
+```sh
+echo "allow_unsupported_modules 1" | sudo tee /etc/modprobe.d/10-unsupported-modules.conf
+```
 
 Reboot the system
 
-**sudo reboot**
+```sh
+sudo reboot
+```
 
 Okay, we have the binaries, the module and the services are
 auto-loading, and four spare 20GB drives, so let's start
 
 Create a few mount points
 
-**sudo mkdir -p /storage/zfs{m,s,r}**
+```sh
+sudo mkdir -p /storage/zfs{m,s,r}
+```
 
 #### Striped pool
 
 In order to create a striped pool, we must execute (**skip it**)
 
-**sudo zpool create zfs-stripe /dev/sdb /dev/sdc**
+```sh
+sudo zpool create zfs-stripe /dev/sdb /dev/sdc
+```
 
 This will mount the pool in **/zfs-stripe** folder
 
 Should we want a custom mount point, we can execute
 
-**sudo zpool create -m /storage/zfss zfs-stripe /dev/sdb /dev/sdc**
+```sh
+sudo zpool create -m /storage/zfss zfs-stripe /dev/sdb /dev/sdc
+```
 
 Now, we can ask for its status with
 
-**sudo zpool status zfs-stripe**
+```sh
+sudo zpool status zfs-stripe
+```
 
 Or we can list all pools with
 
-**sudo zfs list**
+```sh
+sudo zfs list
+```
 
 #### Mirrored pool
 
@@ -1212,60 +1253,80 @@ More or less the procedure is the same as with the stripe mode
 
 In order to create a mirrored pool, but mount it in a custom point
 
-**sudo zpool create -m /storage/zfsm zfs-mirror mirror /dev/sdd
-/dev/sde**
+```sh
+sudo zpool create -m /storage/zfsm zfs-mirror mirror /dev/sdd /dev/sde
+```
 
 Now, we can ask for its status with
 
-**sudo zpool status zfs-mirror**
+```sh
+sudo zpool status zfs-mirror
+```
 
 Or we can list all pools with
 
-**sudo zfs list**
+```sh
+sudo zfs list
+```
 
 #### RAID5-like pool
 
 Let's unmount both pools
 
-**sudo umount /storage/zfs\***
+```sh
+sudo umount /storage/zfs\*
+```
 
 Then execute the **destroy** command
 
-**sudo zpool destroy zfs-mirror**
+```sh
+sudo zpool destroy zfs-mirror
 
-**sudo zpool destroy zfs-stripe**
+sudo zpool destroy zfs-stripe
+```
 
 Then clean the drives
 
-**sudo wipefs \--all /dev/sd\[b-e\]**
+```sh
+sudo wipefs --all /dev/sd[b-e]
+```
 
 In order to create a RAID5-like (RAIDZ) pool, but mount it in a custom
 point, we must execute
 
-**sudo zpool create -m /storage/zfsr zfs-raidz raidz /dev/sdb /dev/sdc
-/dev/sdd**
+```sh
+sudo zpool create -m /storage/zfsr zfs-raidz raidz /dev/sdb /dev/sdc /dev/sdd
+```
 
 Check the status with the known commands
 
-**sudo zpool list**
+```sh
+sudo zpool list
 
-**sudo zpool status zfs-raidz**
+sudo zpool status zfs-raidz
 
-**df -hT**
+df -hT
+```
 
 #### Clean up
 
 In order to delete a pool, first we must unmount it
 
-**sudo umount /storage/zfsr**
+```sh
+sudo umount /storage/zfsr
+```
 
 Then execute the **destroy** command
 
-**sudo zpool destroy zfs-raidz**
+```sh
+sudo zpool destroy zfs-raidz
+```
 
 We can clean the drives
 
-**sudo wipefs \--all /dev/sd\[b-e\]**
+```sh
+sudo wipefs \--all /dev/sd\[b-e\]
+```
 
 ## Part 3: Additional Storage Techniques {#part-3-additional-storage-techniques .list-paragraph}
 
@@ -1278,29 +1339,39 @@ second part
 
 Prepare drive **sdb** by creating a partition and filesystem
 
-**sudo parted -s /dev/sdb \-- mklabel msdos mkpart primary 2048s -0m set
-1**
+```sh
+sudo parted -s /dev/sdb -- mklabel msdos mkpart primary 2048s -0m set 1
+```
 
-**sudo mkfs.ext4 /dev/sdb1**
+```sh
+sudo mkfs.ext4 /dev/sdb1
+```
 
 _When asked to confirm if you want to continue, do it_
 
 Prepare drive **sdc** by creating a partition and filesystem
 
-**sudo parted -s /dev/sdc \-- mklabel msdos mkpart primary 2048s -0m set
-1**
+```sh
+sudo parted -s /dev/sdc \-- mklabel msdos mkpart primary 2048s -0m set 1
+```
 
-**sudo mkfs.xfs -f /dev/sdc1**
+```sh
+sudo mkfs.xfs -f /dev/sdc1
+```
 
 Add both in **/etc/fstab** by adding the following two rows at the end
 
-**/dev/sdb1 /storage/ext4 ext4 defaults 0 0**
+```plain
+/dev/sdb1 /storage/ext4 ext4 defaults 0 0
 
-**/dev/sdc1 /storage/xfs xfs defaults 0 0**
+/dev/sdc1 /storage/xfs xfs defaults 0 0
+```
 
 And mount them with
 
-**sudo mount -av**
+```sh
+sudo mount -av
+```
 
 #### Ext4 quotas
 
@@ -1313,55 +1384,79 @@ Save and close the file
 
 Unmount the filesystem
 
-**sudo umount /storage/ext4**
+```sh
+sudo umount /storage/ext4
+```
 
 And mount it again
 
-**sudo mount -av**
+```sh
+sudo mount -av
+```
 
 Now, let's create the quota database
 
-**sudo quotacheck -mu /dev/sdb1**
+```sh
+sudo quotacheck -mu /dev/sdb1
+```
 
 _If the command is missing, you can install the following package and
 then re-run the command_
 
-**_sudo zypper install quota_**
+```sh
+sudo zypper install quota
+```
 
 Let's check the filesystem's content
 
-**ls -al /storage/ext4/**
+```sh
+ls -al /storage/ext4/
+```
 
 We can see that there is a quota file (database) for users
 
 Turn on the quota for the partition
 
-**sudo quotaon /dev/sdb1**
+```sh
+sudo quotaon /dev/sdb1
+```
 
 Check the current state of space usage (or quota utilization) on the
 partition
 
-**sudo repquota -uv /dev/sdb1**
+```sh
+sudo repquota -uv /dev/sdb1
+```
 
 Let's create a new **demo** user
 
-**sudo useradd -m demo**
+```sh
+sudo useradd -m demo
+```
 
 And set its password to something easy
 
-**sudo passwd demo**
+```sh
+sudo passwd demo
+```
 
 Now, set the quota for the demo user
 
-**sudo setquota -u demo 20000 25000 0 0 /dev/sdb1**
+```sh
+sudo setquota -u demo 20000 25000 0 0 /dev/sdb1
+```
 
 And check the quota utilization again
 
-**sudo repquota -uv /dev/sdb1**
+```sh
+sudo repquota -uv /dev/sdb1
+```
 
 Let's change the quota with
 
-**sudo edquota -u demo**
+```sh
+sudo edquota -u demo
+```
 
 Set the soft limit to **18000**
 
@@ -1369,27 +1464,39 @@ Save and close
 
 Let's add one more user named **knight**
 
-**sudo useradd -m knight**
+```sh
+sudo useradd -m knight
+```
 
 And set quota for it based on the **demo** user
 
-**sudo edquota -u knight -p demo**
+```sh
+sudo edquota -u knight -p demo
+```
 
 Check the quota utilization again
 
-**sudo repquota -uv /dev/sdb1**
+```sh
+sudo repquota -uv /dev/sdb1
+```
 
 Now, let's give right to everyone to write in the folder with
 
-**sudo chmod 777 /storage/ext4**
+```sh
+sudo chmod 777 /storage/ext4
+```
 
 Switch to the **demo** user
 
-**su demo**
+```sh
+su demo
+```
 
 Create a **5 MB** file named **fill.dat** with
 
-**dd if=/dev/zero of=/storage/ext4/fill.dat**
+```sh
+dd if=/dev/zero of=/storage/ext4/fill.dat
+```
 
 Ooops, we forgot to set block size and block count
 
@@ -1397,25 +1504,33 @@ Fortunately, because of the quota the operation was interrupted
 
 Delete the file and this time create a file with the right size
 
-**rm /storage/ext4/fill.dat**
+```sh
+rm /storage/ext4/fill.dat
 
-**dd if=/dev/zero of=/storage/ext4/fill.dat bs=1M count=5**
+dd if=/dev/zero of=/storage/ext4/fill.dat bs=1M count=5
+```
 
 Everything is going as expected
 
 Add one more file but **15 MB** in size
 
-**dd if=/dev/zero of=/storage/ext4/fill-15M.dat bs=15M count=1**
+```sh
+dd if=/dev/zero of=/storage/ext4/fill-15M.dat bs=15M count=1
+```
 
 We received a warning
 
 Exit to the regular user
 
-**exit**
+```sh
+exit
+```
 
 Ask for the quota utilization
 
-**sudo repquota -uv /dev/sdb1**
+```sh
+sudo repquota -uv /dev/sdb1
+```
 
 We can see that the **soft quota is breached** for the **demo** user
 
@@ -1430,53 +1545,77 @@ Save and close the file
 
 Unmount the filesystem
 
-**sudo umount /storage/xfs**
+```sh
+sudo umount /storage/xfs
+```
 
 And mount it again
 
-**sudo mount -av**
+```sh
+sudo mount -av
+```
 
 Now, let's set some quota limits
 
-**sudo xfs_quota -xc \'limit -u bsoft=20m bhard=25m demo\' /dev/sdc1**
+```sh
+sudo xfs_quota -xc \'limit -u bsoft=20m bhard=25m demo\' /dev/sdc1
+```
 
 Change folder's permissions
 
-**sudo chmod 777 /storage/xfs**
+```sh
+sudo chmod 777 /storage/xfs
+```
 
 Switch to the **demo** user
 
-**su demo**
+```sh
+su demo
+```
 
 And create a **15 MB** file
 
-**dd if=/dev/zero of=/storage/xfs/fill-15M.dat bs=15M count=1**
+```sh
+dd if=/dev/zero of=/storage/xfs/fill-15M.dat bs=15M count=1
+```
 
 Return to the regular user
 
-**exit**
+```sh
+exit
+```
 
 And ask for quota utilization report
 
-**sudo xfs_quota -c \'quota demo\' /dev/sdc1**
+```sh
+sudo xfs_quota -c \'quota demo\' /dev/sdc1
+```
 
 We can switch again to the **demo** user
 
-**su demo**
+```sh
+su demo
+```
 
 Let's try to create a second file but this time **20 MB** file
 
-**dd if=/dev/zero of=/storage/xfs/fill-20M.dat bs=20M count=1**
+```sh
+dd if=/dev/zero of=/storage/xfs/fill-20M.dat bs=20M count=1
+```
 
 It allowed us. Strange
 
 Exit the user
 
-**exit**
+```sh
+exit
+```
 
 And ask for a report
 
-**sudo xfs_quota -c \'quota demo\' /dev/sdc1**
+```sh
+sudo xfs_quota -c \'quota demo\' /dev/sdc1
+```
 
 Most probably this situation has something to do with the options in the
 **/etc/fstab**
@@ -1498,30 +1637,41 @@ For this part we will need the **DM_CRYPT** module
 Let's check is it available as part of the kernel or it is loadable on
 demand
 
-**grep -i DM_CRYPT /boot/config-\$(uname -r)**
+```sh
+grep -i DM_CRYPT /boot/config-$(uname -r)
+```
 
 We can check if it is already loaded with
 
-**sudo lsmod \| grep dm_crypt**
+```sh
+sudo lsmod | grep dm_crypt
+```
 
 If not, we can try to load it
 
-**sudo modprobe dm_crypt**
+```sh
+sudo modprobe dm_crypt
+```
 
 And check again if it is loaded
 
-**sudo lsmod \| grep dm_crypt**
+```sh
+sudo lsmod | grep dm_crypt
+```
 
 Make sure that the **cryptsetup** package is installed
 
-**sudo zypper install cryptsetup**
+```sh
+sudo zypper install cryptsetup
+```
 
 Finally, make sure that there is a partition available for encryption
 
 Let's create a small partition on one of the spare drives
 
-**sudo parted -s /dev/sdd \-- mklabel msdos mkpart primary 2048s 1024m
-set 1**
+```sh
+sudo parted -s /dev/sdd -- mklabel msdos mkpart primary 2048s 1024m set 1
+```
 
 #### Encrypt a partition
 
@@ -1531,7 +1681,9 @@ resides
 
 Initiate the encryption procedure
 
-**sudo cryptsetup -y luksFormat /dev/sdd1**
+```sh
+sudo cryptsetup -y luksFormat /dev/sdd1
+```
 
 Answer with **YES**
 
@@ -1539,13 +1691,17 @@ Then enter and re-enter encryption passphrase
 
 Now, we can check what options were used during the encryption
 
-**sudo cryptsetup luksDump /dev/sdd1**
+```sh
+sudo cryptsetup luksDump /dev/sdd1
+```
 
 Usually, there is a tab-completion for the sub-commands
 
 We can explore the set of sub-commands
 
-**sudo cryptsetup \--help**
+```sh
+sudo cryptsetup \--help
+```
 
 For example, we can try the **isLuks** and test our encrypted and some
 other partition
@@ -1555,15 +1711,19 @@ every **isLuks** sub-command)
 
 For example
 
-**cryptsetup isLuks /dev/sdd1**
+```sh
+cryptsetup isLuks /dev/sdd1
 
-**echo \$?**
+echo \$?
+```
 
 _Should return 0 as it is encrypted_
 
-**cryptsetup isLuks /dev/sdb1**
+```sh
+cryptsetup isLuks /dev/sdb1
 
-**echo \$?**
+echo \$?
+```
 
 _Should return 1 as it is not encrypted_
 
@@ -1571,75 +1731,106 @@ _Should return 1 as it is not encrypted_
 
 Let's open the encrypted partition
 
-**sudo cryptsetup luksOpen /dev/sdd1 encr**
+```sh
+sudo cryptsetup luksOpen /dev/sdd1 encr
+```
 
 Now, check for the **encr** partition
 
-**ls /dev/mapper/**
+```sh
+ls /dev/mapper/
+```
 
 Let's create a filesystem on it
 
-**sudo mkfs.xfs /dev/mapper/encr**
+```sh
+sudo mkfs.xfs /dev/mapper/encr
+```
 
 Once we are done, we can close the partition
 
-**sudo cryptsetup luksClose encr**
+```sh
+sudo cryptsetup luksClose encr
+```
 
 Let's open it again but this time with a different name
 
-**sudo cryptsetup luksOpen /dev/sdd1 enc-data**
+```sh
+sudo cryptsetup luksOpen /dev/sdd1 enc-data
+```
 
 Of course, it appears with the new name
 
-**ls /dev/mapper**
+```sh
+ls /dev/mapper
+```
 
 #### Mount encrypted partition on boot
 
 Prepare a mount point
 
-**sudo mkdir -p /storage/enc**
+```sh
+sudo mkdir -p /storage/enc
+```
 
 We must either use one and the same name every time in order to be able
 to use it in **/etc/fstab** or obtain the UUID
 
-**sudo blkid /dev/sdd1**
+```sh
+sudo blkid /dev/sdd1
+```
 
 Now open the **/etc/crypttab** file
 
-**sudo vi /etc/crypttab**
+```sh
+sudo vi /etc/crypttab
+```
 
 And paste
 
-**enc-data UUID=\<uuid\>**
+```sh
+enc-data UUID=\<uuid\>
+```
 
 Save and close the file
 
 _Or use this command, instead_
 
-**_echo \"enc-data \$(sudo blkid /dev/sdd1 \| cut -d \' \' -f 2)\" \|
-sudo tee /etc/crypttab_**
+```sh
+echo "enc-data $(sudo blkid /dev/sdd1 | cut -d ' ' -f 2)" \| sudo tee /etc/crypttab
+```
 
 Now, open the **/etc/fstab** file
 
-**sudo vi /etc/fstab**
+```sh
+sudo vi /etc/fstab
+```
 
 As last record enter
 
-**/dev/mapper/enc-data /storage/enc xfs defaults 0 0**
+```sh
+/dev/mapper/enc-data /storage/enc xfs defaults 0 0
+```
 
 Save and close the file
 
 Close the encrypted partition if open
 
-**sudo cryptsetup luksClose enc-data**
+```sh
+sudo cryptsetup luksClose enc-data
+```
 
 Then, re-open it
 
-**sudo cryptsetup luksOpen /dev/sdd1 enc-data**
+```sh
+sudo cryptsetup luksOpen /dev/sdd1 enc-data
+```
 
 Now, try to mount it
 
-**sudo mount -av**
+```sh
+sudo mount -av
+```
 
 Now, reboot the machine and use the console of the virtualization
 solution to interact with the VM
@@ -1653,18 +1844,24 @@ Once, you enter it correctly the boot process will continue
 
 Let's install the required package
 
-**sudo zypper install autofs**
+```sh
+sudo zypper install autofs
+```
 
 Now, that we have the package installed, let's examine the set of
 configuration files
 
-**ls -al /etc/auto\***
+```sh
+ls -al /etc/auto*
+```
 
 The main configuration file is the **/etc/autofs.conf**
 
 Explore its content with
 
-**cat /etc/autofs.conf**
+```sh
+cat /etc/autofs.conf
+```
 
 Should we want to change, for example, the timeout after which to
 unmount the resource, we must do it here
@@ -1672,7 +1869,9 @@ unmount the resource, we must do it here
 Before we continue, we must change something. Open one of the
 configuration files
 
-**sudo vi /etc/auto.master**
+```sh
+sudo vi /etc/auto.master
+```
 
 And make sure that the **/misc** and **/net** rows are not commented
 
@@ -1680,64 +1879,88 @@ Save and close it
 
 Let's start the service and enable it on boot
 
-**sudo systemctl enable \--now autofs**
+```sh
+sudo systemctl enable \--now autofs
+```
 
 #### Automount encrypted device
 
 Remove the **/etc/fstab** entry related to the mounting of the encrypted
 partition
 
-**sudo vi /etc/fstab**
+```sh
+sudo vi /etc/fstab
+```
 
 Remove the **/etc/crypttab** entry or file as well
 
-**sudo vi /etc/crypttab**
+```sh
+sudo vi /etc/crypttab
+```
 
 Unmount it
 
-**sudo umount /storage/enc**
+```sh
+sudo umount /storage/enc
+```
 
 And then close it
 
-**sudo cryptsetup luksClose enc-data**
+```sh
+sudo cryptsetup luksClose enc-data
+```
 
 Open the **/etc/auto.misc** file
 
-**sudo vi /etc/auto.misc**
+```sh
+sudo vi /etc/auto.misc
+```
 
 And add a row bellow the **cd** one
 
-**enc -fstype=xfs :/dev/mapper/enc-data**
+```sh
+enc -fstype=xfs :/dev/mapper/enc-data
+```
 
 Close and save the file
 
 Restart the **autofs** service
 
-**sudo systemctl restart autofs**
+```sh
+sudo systemctl restart autofs
+```
 
 Open the encrypted volume
 
-**sudo cryptsetup luksOpen /dev/sdd1 enc-data**
+```sh
+sudo cryptsetup luksOpen /dev/sdd1 enc-data
+```
 
 If asked for the password used during the encryption, then enter it
 
 Check the **/misc** directory
 
-**ls -al /misc**
+```sh
+ls -al /misc
+```
 
 It is empty
 
 Navigate to **/misc/enc**
 
-**cd /misc/enc**
+```sh
+cd /misc/enc
+```
 
 You are allowed to enter
 
 Now, if you execute either of the following commands
 
-**mount -l**
+```sh
+mount -l
 
-**df -hT**
+df -hT
+```
 
 You will notice that the one, residing on the encrypted partition is
 currently mounted
@@ -1748,23 +1971,33 @@ _You can test this in a later stage when we complete the M3 module_
 
 Check what are NFS exports we have currently
 
-**sudo exportfs -s**
+```sh
+sudo exportfs -s
+```
 
 Try to mount it locally
 
-**sudo mount server:/storage/nfs/share /mnt**
+```sh
+sudo mount server:/storage/nfs/share /mnt
+```
 
 Check with
 
-**mount -l**
+```sh
+mount -l
+```
 
 Now, unmount it
 
-**sudo umount /mnt**
+```sh
+sudo umount /mnt
+```
 
 Let's edit the **/etc/auto.misc** file and add
 
-**nfs -fstype=nfs,ro,soft,intr server:/storage/nfs/share**
+```sh
+nfs -fstype=nfs,ro,soft,intr server:/storage/nfs/share
+```
 
 Save and close the file
 

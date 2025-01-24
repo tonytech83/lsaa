@@ -543,7 +543,7 @@ Create a **hello.txt** file with some text and store it in the
 **/storage/lvm** folder
 
 ```sh
-echo \'Hello LVM\' \| sudo tee /storage/lvm/hello.txt
+echo 'Hello LVM' | sudo tee /storage/lvm/hello.txt
 ```
 
 #### Growing a logical volume

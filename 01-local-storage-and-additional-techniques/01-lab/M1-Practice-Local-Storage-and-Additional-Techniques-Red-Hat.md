@@ -57,8 +57,9 @@ autodetect** which is **fd**
 There is a faster and script-ready way. Let's execute the following for
 **sdc** drive
 
-**sudo parted -s /dev/sdc \-- mklabel msdos mkpart primary 2048s -0m set
-1 raid on**
+```sh
+sudo parted -s /dev/sdc -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+```
 
 _If the **parted** tool is not part of your installation, then install
 it and repeat the above command_
@@ -73,11 +74,13 @@ Both partitions should look the same
 
 We can process the other two drives following the second approach
 
-**sudo parted -s /dev/sdd \-- mklabel msdos mkpart primary 2048s -0m set
-1 raid on**
+```sh
+sudo parted -s /dev/sdd -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+```
 
-**sudo parted -s /dev/sde \-- mklabel msdos mkpart primary 2048s -0m set
-1 raid on**
+```sh
+sudo parted -s /dev/sde -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+```
 
 Now, we have our drives ready
 
@@ -90,14 +93,14 @@ sudo dnf install mdadm
 We can receive usage information for the **mdadm** with
 
 ```sh
-mdadm \--help
+mdadm --help
 ```
 
 In order to ask for a specific set of commands, for example for array
 creation, execute
 
 ```sh
-mdadm \--create \--help
+mdadm --create --help
 ```
 
 #### RAID 0
@@ -106,8 +109,9 @@ In order to create a RAID 0 array, we need at least two devices
 
 So, let's use **sdb1** and **sdc1** to create the array
 
-**sudo mdadm \--create /dev/md0 \--level 0 \--raid-devices 2
-/dev/sd{b,c}1**
+```sh
+sudo mdadm --create /dev/md0 --level 0 --raid-devices 2 /dev/sd{b,c}1
+```
 
 We can check its status with
 
@@ -121,24 +125,25 @@ default value
 Let's change it, but first we will stop our array
 
 ```sh
-sudo mdadm \--stop /dev/md0
+sudo mdadm --stop /dev/md0
 ```
 
 Erase the MD superblocks from the devices
 
 ```sh
-sudo mdadm \--zero-superblock /dev/sd{b,c}1
+sudo mdadm --zero-superblock /dev/sd{b,c}1
 ```
 
 Use the following command to create a new array with **128k** chunks
 
-**sudo mdadm \--create /dev/md0 \--level 0 \--chunk 128 \--raid-devices
-2 /dev/sd{b,c}1**
+```sh
+sudo mdadm --create /dev/md0 --level 0 --chunk 128 --raid-devices 2 /dev/sd{b,c}1
+```
 
 Alternative approach to check the status of an array is to use
 
 ```sh
-sudo mdadm \--detail /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
 We can shorten the command by substituting **\--detail** with **-D**.
@@ -149,27 +154,28 @@ Other actions have short names as well
 Be sure that you stopped the array and clean up the devices
 
 ```sh
-sudo mdadm \--stop /dev/md0
+sudo mdadm --stop /dev/md0
 ```
 
 ```sh
-sudo mdadm \--zero-superblock /dev/sd{b,c}1
+sudo mdadm --zero-superblock /dev/sd{b,c}1
 ```
 
 Use the following command to create a new RAID 1 array
 
-**sudo mdadm \--create /dev/md0 \--level 1 \--raid-devices 2
-/dev/sd{b,c}1**
+```sh
+sudo mdadm --create /dev/md0 --level 1 --raid-devices 2 /dev/sd{b,c}1
+```
 
 You will be asked to either change the metadata version with
-**\--metadata 0.90** if you plan to use the array for **/boot**
+**--metadata 0.90** if you plan to use the array for **/boot**
 
 If not, and asked, type **yes** and hit **Enter** to create the array
 
 Check its status with
 
 ```sh
-sudo mdadm \--detail /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
 #### RAID 5
@@ -177,39 +183,41 @@ sudo mdadm \--detail /dev/md0
 Be sure that you stopped the array and clean up the devices
 
 ```sh
-sudo mdadm \--stop /dev/md0
+sudo mdadm --stop /dev/md0
 
-sudo mdadm \--zero-superblock /dev/sd{b,c}1
+sudo mdadm --zero-superblock /dev/sd{b,c}1
 ```
 
 Use the following command to create a new RAID 5 array with **64k**
 chunks
 
-**sudo mdadm \--create /dev/md0 \--level 5 \--chunk 64 \--raid-devices 3
-/dev/sd{b,c,d}1**
+```sh
+sudo mdadm --create /dev/md0 --level 5 --chunk 64 --raid-devices 3 /dev/sd{b,c,d}1
+```
 
 Check its status with
 
 ```sh
-sudo mdadm \--detail /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
 Let's add one more device
 
 ```sh
-sudo mdadm /dev/md0 \--add /dev/sde1
+sudo mdadm /dev/md0 --add /dev/sde1
 ```
 
 We can check the status
 
 ```sh
-sudo mdadm \--detail /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
 Now, we must reconfigure the array to use the new drive as well
 
-**sudo mdadm /dev/md0 \--grow \--raid-devices 4 \--backup-file
-/tmp/md0-grow.bak**
+```sh
+sudo mdadm /dev/md0 --grow --raid-devices 4 --backup-file /tmp/md0-grow.bak
+```
 
 As a final step, we must extend the filesystem, if any, residing on the
 array
@@ -218,20 +226,21 @@ array
 
 Be sure that you stopped the array and clean up the devices
 
-**sudo mdadm \--stop /dev/md0**
+**sudo mdadm --stop /dev/md0**
 
-**sudo mdadm \--zero-superblock /dev/sd{b,c,d,e}1**
+**sudo mdadm --zero-superblock /dev/sd{b,c,d,e}1**
 
 Use the following command to create a new RAID 10 array with **64k**
 chunks
 
-**sudo mdadm \--create /dev/md0 \--level 10 \--chunk 64 \--raid-devices
-4 /dev/sd{b..e}1**
+```sh
+sudo mdadm --create /dev/md0 --level 10 --chunk 64 \--raid-devices 4 /dev/sd{b..e}1
+```
 
 Check its status with
 
 ```sh
-sudo mdadm \--detail /dev/md0
+sudo mdadm --detail /dev/md0
 ```
 
 #### Using an array
@@ -245,14 +254,14 @@ contain information about the array
 The easiest way to achieve this is to execute
 
 ```sh
-sudo mdadm \--detail \--brief /dev/md0 \| sudo tee -a /etc/mdadm.conf
+sudo mdadm --detail --brief /dev/md0 | sudo tee -a /etc/mdadm.conf
 ```
 
 Alternatively, if we had multiple freshly created arrays, we could add
 all of them in one step
 
 ```sh
-sudo mdadm \--detail \--scan \| sudo tee -a /etc/mdadm.conf
+sudo mdadm --detail --scan | sudo tee -a /etc/mdadm.conf
 ```
 
 Now, let's create an **ext4** filesystem on the array
@@ -279,8 +288,7 @@ For this we will need to find the UUID with
 sudo blkid /dev/md0
 ```
 
-**_Do not add_** a record to the **/etc/fstab** file now,
-as we are about to destroy the array\*
+_**Do not add** a record to the **/etc/fstab** file now, as we are about to destroy the array_
 
 #### Clean up
 
@@ -293,13 +301,13 @@ sudo umount /dev/md0
 Be sure that you stopped the array
 
 ```sh
-sudo mdadm \--stop /dev/md0
+sudo mdadm --stop /dev/md0
 ```
 
 And then clean up the devices by erasing the MD superblocks from them
 
 ```sh
-sudo mdadm \--zero-superblock /dev/sd{b,c,d,e}1
+sudo mdadm --zero-superblock /dev/sd{b,c,d,e}1
 ```
 
 Furthermore, you can use **dd** to mangle the drives' content
@@ -315,7 +323,7 @@ If you edited the **/etc/fstab** file, revert the changes
 Finally, use **wipefs** to remove any remaining structures on disks
 
 ```sh
-sudo wipefs \--all /dev/sd{b..e}
+sudo wipefs --all /dev/sd{b..e}
 ```
 
 Check the result with **lsblk**
@@ -362,7 +370,7 @@ We can create a physical volume with either none or for example two
 copies of metadata. Let's create with two
 
 ```sh
-sudo pvcreate \--metadatacopies 2 /dev/sdc
+sudo pvcreate --metadatacopies 2 /dev/sdc
 ```
 
 Verbosity can be added and/or increased for other commands as well, for
@@ -421,7 +429,7 @@ sudo vgdisplay vg_demo -v
 Let's create a second VG but this time with a different extent size
 
 ```sh
-sudo vgcreate vg_test \--physicalextentsize 8 /dev/sdc
+sudo vgcreate vg_test --physicalextentsize 8 /dev/sdc
 ```
 
 And check the summary with
@@ -505,8 +513,8 @@ Let's create an **ext4** filesystem on the logical volume
 sudo mkfs.ext4 /dev/vg_demo/lv_demo
 ```
 
-\*Or we can use the alternative device file (via device-mapper), i.e.
-**/dev/mapper/vg_demo-lv_demo\***
+_Or we can use the alternative device file (via device-mapper), i.e.
+**/dev/mapper/vg_demo-lv_demo**_
 
 We can mount the array in the **/storage/lvm** folder
 
@@ -518,7 +526,7 @@ Create a **hello.txt** file with some text and store it in the
 **/storage/lvm** folder
 
 ```sh
-echo \'Hello LVM\' \| sudo tee /storage/lvm/hello.txt
+echo 'Hello LVM' | sudo tee /storage/lvm/hello.txt
 ```
 
 #### Growing a logical volume
@@ -544,18 +552,18 @@ sign)
 sudo lvextend -L +5G /dev/vg_demo/lv_demo
 ```
 
-\*The long option for this (**-L**) is **--size\***
+_The long option for this (**-L**) is **--size**_
 
 In the same way, we can use extents both as required target size or as
 amount to be added
 
 For this, we can use the short option **-l** (lower case L) or the long
-one **\--extents**
+one **--extents**
 
 For example, to add 100 more extents, we can execute
 
 ```sh
-sudo lvextend \--extents +100 /dev/vg_demo/lv_demo
+sudo lvextend --extents +100 /dev/vg_demo/lv_demo
 ```
 
 Of course, we can ask the logical volume to occupy the whole available
@@ -691,7 +699,7 @@ diff /storage/lvm/hello.txt /storage/lvm-snap/hello.txt
 Now, change the text in the original file with:
 
 ```sh
-echo \'\... some more text\' \| sudo tee -a /storage/lvm/hello.txt
+echo '... some more text' | sudo tee -a /storage/lvm/hello.txt
 ```
 
 And compare them again
@@ -732,7 +740,7 @@ sudo umount /storage/lvm /storage/lvm-snap
 The actual operation is called **merge** and it is started with
 
 ```sh
-sudo lvconvert \--merge /dev/vg_demo/lv_demo_snap
+sudo lvconvert --merge /dev/vg_demo/lv_demo_snap
 ```
 
 Then, we can check all logical volumes with
@@ -758,7 +766,7 @@ cat /storage/lvm/hello.txt
 Let's prepare a new logical volume
 
 ```sh
-sudo lvcreate -L 1G \--thinpool tp_demo vg_demo
+sudo lvcreate -L 1G --thinpool tp_demo vg_demo
 ```
 
 Let's check
@@ -857,19 +865,19 @@ The picture gets messy
 First unmount all LVM related mounts
 
 ```sh
-sudo umount /storage/lvm\*
+sudo umount /storage/lvm*
 ```
 
 Next, delete the volume group together with all logical volumes
 
 ```sh
-sudo vgremove vg_demo \--force
+sudo vgremove vg_demo --force
 ```
 
 Wipe all four drives
 
 ```sh
-sudo wipefs \--all /dev/sd\[b-e\]
+sudo wipefs --all /dev/sd[b-e]
 ```
 
 ## Part 2: Advanced Filesystems
@@ -897,28 +905,29 @@ by following this procedure
 Import the public keys of the **ELRepo Project**
 
 ```sh
-sudo rpm \--import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+sudo rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
 ```
 
 ```sh
-sudo rpm \--import https://www.elrepo.org/RPM-GPG-KEY-v2-elrepo.org
+sudo rpm --import https://www.elrepo.org/RPM-GPG-KEY-v2-elrepo.org
 ```
 
 Then install the ELRepo
 
-**sudo dnf install
-https://www.elrepo.org/elrepo-release-9.el9.elrepo.noarch.rpm**
+```sh
+sudo dnf install https://www.elrepo.org/elrepo-release-9.el9.elrepo.noarch.rpm
+```
 
 Then install either the **long-term support** Kernel
 
 ```sh
-sudo dnf \--enablerepo=elrepo-kernel install kernel-lt
+sudo dnf --enablerepo=elrepo-kernel install kernel-lt
 ```
 
 Or install the **mainline stable** Kernel
 
 ```sh
-sudo dnf \--enablerepo=elrepo-kernel install kernel-ml
+sudo dnf --enablerepo=elrepo-kernel install kernel-ml
 ```
 
 Reboot the system
@@ -957,8 +966,9 @@ sudo mount /dev/sdb /storage/btrfs
 
 Let's create a few small files with
 
-**for i in \$(seq 1 5); do sudo dd if=/dev/zero
-of=/storage/btrfs/file\$i.img bs=1M count=10 ; sync ; done**
+```sh
+for i in \$(seq 1 5); do sudo dd if=/dev/zero of=/storage/btrfs/file\$i.img bs=1M count=10 ; sync ; done
+```
 
 Check with
 
@@ -974,8 +984,9 @@ sudo btrfs device usage /storage/btrfs
 
 Repeat the procedure with files creation but create bigger files
 
-**for i in \$(seq 1 5); do sudo dd if=/dev/zero
-of=/storage/btrfs/file\$i.img bs=10M count=100 ; sync ; done**
+```sh
+for i in \$(seq 1 5); do sudo dd if=/dev/zero of=/storage/btrfs/file\$i.img bs=10M count=100 ; sync ; done
+```
 
 Check disk usage again
 
@@ -1136,8 +1147,7 @@ And mount it there
 sudo mount -o subvolid=\<ID\> /dev/sdb /storage/btrfs-svol
 ```
 
-_Change the **\<ID\>** to what you saw as output of the **subvolume
-list** command_
+_Change the **\<ID\>** to what you saw as output of the **subvolume list** command_
 
 Now, if we execute the standard command **df** we will see something
 strange at first look
@@ -1163,7 +1173,7 @@ current state of another subvolume
 Let's create a simple text file
 
 ```sh
-echo \'Hello BTRFS\' \| sudo tee /storage/btrfs/hello.txt
+echo 'Hello BTRFS' | sudo tee /storage/btrfs/hello.txt
 ```
 
 And then create a snapshot of the main (root) BTRFS volume
@@ -1181,7 +1191,7 @@ tree /storage/btrfs
 Change the original text file
 
 ```sh
-echo \'\... some additional text\' \| sudo tee -a /storage/btrfs/hello.txt
+echo '... some additional text' | sudo tee -a /storage/btrfs/hello.txt
 ```
 
 Check the content of both files
@@ -1206,7 +1216,7 @@ sudo umount /storage/btrfs /storage/btrfs-svol
 And clean the devices
 
 ```sh
-sudo wipefs \--all /dev/sd{b..e}
+sudo wipefs --all /dev/sd{b..e}
 ```
 
 ### Advanced Filesystems (ZFS)
@@ -1226,7 +1236,7 @@ sudo dnf install https://zfsonlinux.org/epel/zfs-release-2-3.el9.noarch.rpm
 ```
 
 ```sh
-sudo rpm \--import /etc/pki/rpm-gpg/RPM-GPG-KEY-openzfs-el-9
+sudo rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-openzfs-el-9
 ```
 
 By default, the **zfs-release** package is configured to install
@@ -1246,9 +1256,9 @@ default repository in the **/etc/yum.repos.d/zfs.repo** file must be
 switch from **zfs** to **zfs-kmod**
 
 ```sh
-sudo dnf config-manager \--disable zfs
+sudo dnf config-manager --disable zfs
 
-sudo dnf config-manager \--enable zfs-kmod
+sudo dnf config-manager --enable zfs-kmod
 ```
 
 Install the necessary packages
@@ -1262,7 +1272,7 @@ No matter which approach you choose, there are a few more steps required
 Execute the following to autoload the module
 
 ```sh
-echo \"zfs\" \| sudo tee -a /etc/modules-load.d/zfs.conf
+echo "zfs" | sudo tee -a /etc/modules-load.d/zfs.conf
 ```
 
 Reboot the system
@@ -1335,7 +1345,7 @@ sudo zfs list
 Let's unmount both pools
 
 ```sh
-sudo umount /storage/zfs\*
+sudo umount /storage/zfs*
 ```
 
 Then execute the **destroy** command
@@ -1349,7 +1359,7 @@ sudo zpool destroy zfs-stripe
 Then clean the drives
 
 ```sh
-sudo wipefs \--all /dev/sd\[b-e\]
+sudo wipefs --all /dev/sd[b-e]
 ```
 
 In order to create a RAID5-like (RAIDZ) pool, but mount it in a custom
@@ -1385,7 +1395,7 @@ sudo zpool destroy zfs-raidz
 We can clean the drives
 
 ```sh
-sudo wipefs \--all /dev/sd\[b-e\]
+sudo wipefs --all /dev/sd[b-e]
 ```
 
 ## Part 3: Additional Storage Techniques
@@ -1400,7 +1410,7 @@ second part
 Prepare drive **sdb** by creating a partition and filesystem
 
 ```sh
-sudo parted -s /dev/sdb \-- mklabel msdos mkpart primary 2048s -0m set 1
+sudo parted -s /dev/sdb \- mklabel msdos mkpart primary 2048s -0m set 1
 
 sudo mkfs.ext4 /dev/sdb1
 ```
@@ -1410,7 +1420,7 @@ _When asked to confirm if you want to continue, do it_
 Prepare drive **sdc** by creating a partition and filesystem
 
 ```sh
-sudo parted -s /dev/sdc \-- mklabel msdos mkpart primary 2048s -0m set 1
+sudo parted -s /dev/sdc -- mklabel msdos mkpart primary 2048s -0m set 1
 
 
 sudo mkfs.xfs -f /dev/sdc1
@@ -1627,7 +1637,7 @@ sudo restorecon /storage/xfs
 Now, let's set some quota limits
 
 ```sh
-sudo xfs_quota -xc \'limit -u bsoft=20m bhard=25m demo\' /dev/sdc1
+sudo xfs_quota -xc 'limit -u bsoft=20m bhard=25m demo' /dev/sdc1
 ```
 
 Change folder's permissions
@@ -1657,7 +1667,7 @@ exit
 And ask for quota utilization report
 
 ```sh
-sudo xfs_quota -c \'quota demo\' /dev/sdc1
+sudo xfs_quota -c 'quota demo' /dev/sdc1
 ```
 
 We can switch again to the **demo** user
@@ -1683,7 +1693,7 @@ exit
 And ask for a report
 
 ```sh
-sudo xfs_quota -c \'quota demo\' /dev/sdc1
+sudo xfs_quota -c 'quota demo' /dev/sdc1
 ```
 
 Most probably this situation has something to do with the options in the
@@ -1707,13 +1717,13 @@ Let's check is it available as part of the kernel or it is loadable on
 demand
 
 ```sh
-grep -i DM_CRYPT /boot/config-\$(uname -r)
+grep -i DM_CRYPT /boot/config-$(uname -r)
 ```
 
 We can check if it is already loaded with
 
 ```sh
-sudo lsmod \| grep dm_crypt
+sudo lsmod | grep dm_crypt
 ```
 
 If not, we can try to load it
@@ -1725,7 +1735,7 @@ sudo modprobe dm_crypt
 And check again if it is loaded
 
 ```sh
-sudo lsmod \| grep dm_crypt
+sudo lsmod | grep dm_crypt
 ```
 
 Make sure that the **cryptsetup** package is installed
@@ -1739,7 +1749,7 @@ Finally, make sure that there is a partition available for encryption
 Let's create a small partition on one of the spare drives
 
 ```sh
-sudo parted -s /dev/sdd \-- mklabel msdos mkpart primary 2048s 1024m set 1
+sudo parted -s /dev/sdd -- mklabel msdos mkpart primary 2048s 1024m set 1
 ```
 
 #### Encrypt a partition
@@ -1769,7 +1779,7 @@ Usually, there is a tab-completion for the sub-commands
 We can explore the set of sub-commands
 
 ```sh
-cryptsetup \--help
+cryptsetup --help
 ```
 
 For example, we can try the **isLuks** and test our encrypted and some
@@ -1858,7 +1868,7 @@ sudo vi /etc/crypttab
 And paste
 
 ```sh
-enc-data UUID=\<uuid\>
+enc-data UUID=<uuid>
 ```
 
 Save and close the file
@@ -1866,7 +1876,7 @@ Save and close the file
 _Or use this command, instead_
 
 ```sh
-echo \"enc-data \$(blkid /dev/sdd1 \| cut -d \' \' -f 2)\" \| sudo tee /etc/crypttab
+echo "enc-data $(blkid /dev/sdd1 | cut -d ' ' -f 2)" | sudo tee /etc/crypttab
 ```
 
 Now, open the **/etc/fstab** file
@@ -1877,7 +1887,7 @@ sudo vi /etc/fstab
 
 As last record enter
 
-```sh
+```plain
 /dev/mapper/enc-data /storage/enc xfs defaults 0 0
 ```
 
@@ -1921,7 +1931,7 @@ Now, that we have the package installed, let's examine the set of
 configuration files
 
 ```sh
-ls -al /etc/auto\*
+ls -al /etc/auto*
 ```
 
 The main configuration file is the **/etc/autofs.conf**
@@ -1949,7 +1959,7 @@ Save and close it
 Let's start the service and enable it on boot
 
 ```sh
-sudo systemctl enable \--now autofs
+sudo systemctl enable --now autofs
 ```
 
 #### Automount encrypted device
