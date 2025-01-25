@@ -1,14 +1,23 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-
-$system_update = <<SCRIPT
-
+$update_python = <<SCRIPT
 RC='\033[0m'
 RED='\033[31m'
-YELLOW='\033[33m'
-CYAN='\033[36m'
-GREEN='\033[32m'
+
+printf "%b\n" "${RED}***${RC} Updating Python to version 3.9 ..."
+
+# Install Python 3.9
+sudo zypper install --no-confirm python39
+
+# Verify the change
+python3 --version
+SCRIPT
+
+
+$system_update = <<SCRIPT
+RC='\033[0m'
+RED='\033[31m'
 
 # Detect the distribution type using /etc/os-release
 DTYPE="unknown"  # Default to unknown
@@ -36,19 +45,26 @@ fi
 SCRIPT
 
 Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/suse-leap-15-6"
+    config.vm.box_version = "0.0.1"
 
-  # OpenSUSE
-  config.vm.define "suse" do |suse|
-    suse.vm.box = "tonytech/suse-leap-15-6"
-    suse.vm.box_version = "0.0.1"
-    suse.vm.hostname = "suse.homework.lab"
-    suse.vm.network "private_network", ip: "192.168.99.102"
-    suse.vm.provision "shell", inline: $system_update
-
-    (0..5).each do |i|
-        suse.vm.disk :disk, size: "5GB", name: "suse-disk-#{i}"
+    # Router
+    config.vm.define "router" do |router|
+        router.vm.hostname = "router.homework.lab"
+        router.vm.network "public_network", bridge: true, ip: "192.168.88.110"
+        router.vm.network "private_network", ip: "192.168.99.101"
+       # router.vm.provision "shell", inline: $system_update
+        router.vm.provision "shell", inline: $update_python
     end
-    
-  end
+
+    # Client
+    config.vm.define "client" do |client|
+        client.vm.hostname = "alma-client.homework.lab"
+        client.vm.network "public_network", bridge: true, ip: "192.168.88.111"
+        client.vm.network "private_network", ip: "192.168.99.102"
+        #client.vm.provision "shell", inline: $system_update
+        client.vm.provision "shell", inline: $update_python
+    end
 
 end
+
