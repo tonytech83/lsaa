@@ -1,6 +1,37 @@
-## PREPARATION
+# Homework M2: Network and System Security
 
-### Router
+Main goal is to build further on what was demonstrated during the practice
+Prerequisites may vary between different tasks. You should adjust your infrastructure according to the task you chose to implement
+
+## Tasks
+
+In general, the infrastructure should look like this:
+![](media/pic.png)
+Choose and implement one or more of the following:
+
+- Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using either firewalld or ufw (depending on the selected distribution)
+- Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using nftables
+
+* Please note, that even if you choose to implement more than one task, they are quite independent and different, so you may need to create a separate infrastructure (environment) for each
+
+## Proof
+
+Prepare a document that shows what you accomplished and how you did it. It can include (not limited to):
+
+- The commands you used to achieve the above tasks
+- A few pictures showing intermediary steps or results
+
+## Solutions
+
+- alma/homework-alma.md
+- debian/homework-debian.md
+- suse/homework-suse.md
+
+## AlmaLinux solution
+
+### PREPARATION
+
+#### Router
 
 1. Check the IP addresses
 
@@ -53,7 +84,7 @@ PING 192.168.99.102 (192.168.99.102) 56(84) bytes of data.
 2 packets transmitted, 2 received, 0% packet loss, time 1003ms
 ```
 
-### Client
+#### Client
 
 1. Check the IP addresses
 
@@ -105,7 +136,7 @@ $ ping dir.bg
 ping: dir.bg: Name or service not known
 ```
 
-## Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using either firewalld or ufw (depending on the selected distribution)
+### Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using either firewalld or ufw (depending on the selected distribution)
 
 1. Enable IP Forwarding (form NIC2 to NIC1) on `lama-router` by adding line to `/etc/sysctl.conf`
 ```plain
@@ -190,9 +221,9 @@ From 192.168.99.101 icmp_seq=5 Packet filtered
 5 packets transmitted, 0 received, +5 errors, 100% packet loss, time 4012ms
 ```
 
-## Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using **nftables**
+### Research and implement two-node solution (one machine with two NICs and the second with one) with NAT capabilities in the first VM using **nftables**
 
-### PREPARATION
+#### PREPARATION
 
 1. Ensure that all other firewall related solutions are either stopped or uninstalled
 ```sh
@@ -220,7 +251,7 @@ PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 5 packets transmitted, 0 received, 100% packet loss, time 4108ms
 ```
 
-### Set up NAT using nftables to allow `alma-client` to access the internet via `alma-router`.
+#### Set up NAT using nftables to allow `alma-client` to access the internet via `alma-router`.
 
 1.Check the active rules
 ```sh
