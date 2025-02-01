@@ -1,0 +1,19 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/suse-leap-15-6"
+    config.vm.box_version = "0.0.1"
+  
+    1.upto(4) do |i|
+      config.vm.define "suse-#{i}" do |node|
+        node.vm.network "private_network", ip: "192.168.99.10#{i}"
+        node.vm.hostname = "suse-#{i}.homework.lab"
+        node.vm.provision "shell", inline: <<-SHELL
+          for i in $(seq 1 4); do echo "192.168.99.$((100 + i))    suse-$i.homework.lab    suse-$i" | sudo tee -a /etc/hosts; done
+        SHELL
+        node.vm.disk :disk, size: "5GB", name: "suse-disk-#{i}"
+      end
+    end
+  
+  end
