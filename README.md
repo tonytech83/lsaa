@@ -12,6 +12,9 @@ The main goal of this course is to provide sufficient comfort in working with Li
 - `Shell`
 
 ## Table of Contents:
+- [`Local Storage and Additional Techniques`](https://github.com/tonytech83/lsaa/tree/main/01-local-storage-and-additional-techniques)
+- [`System and Network Security`](https://github.com/tonytech83/lsaa/tree/main/02-system-and-network-security/02-homework)
+- [`Shared and Distributed Storage`](https://github.com/tonytech83/lsaa/tree/main/03-shared-and-distributed-storage/02-homework)
 
 <br/>
 <br/>
