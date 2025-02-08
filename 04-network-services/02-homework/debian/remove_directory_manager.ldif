@@ -1,0 +1,9 @@
+dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
+changetype: modify
+delete: member
+member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
+
+dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
+changetype: modify
+delete: member
+member: cn=Directory Manager,dc=ds,dc=homework,dc=lab

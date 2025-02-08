@@ -1,0 +1,32 @@
+dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Ivan
+sn: Ivanov
+displayName: Ivan Ivanov
+uid: ivan.ivanov
+userPassword: pass_123456
+
+dn: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Mariya
+sn: Ilieva
+displayName: Mariya Ilieva
+uid: mariya.ilieva
+userPassword: pass_123456
+
+dn: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+cn: Petar
+sn: Radev
+displayName: Petar Radev
+uid: petar.radev
+userPassword: pass_123123

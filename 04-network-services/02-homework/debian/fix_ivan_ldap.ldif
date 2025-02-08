@@ -1,0 +1,16 @@
+dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+changetype: modify
+add: objectClass
+objectClass: posixAccount
+-
+add: uidNumber
+uidNumber: 10001
+-
+add: gidNumber
+gidNumber: 10001
+-
+add: loginShell
+loginShell: /bin/bash
+-
+add: homeDirectory
+homeDirectory: /home/ivan.ivanov

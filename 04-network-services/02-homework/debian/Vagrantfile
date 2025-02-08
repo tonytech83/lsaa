@@ -1,0 +1,59 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+echo '127.0.0.1       localhost' > /etc/hosts
+echo '' >> /etc/hosts
+echo 'ff02::1 ip6-allnodes' >> /etc/hosts
+echo 'ff02::2 ip6-allrouters' >> /etc/hosts
+echo '' >> /etc/hosts
+echo '192.168.99.101 ds.homework.lab ds' >> /etc/hosts
+echo '192.168.99.102 client.homework.lab client' >> /etc/hosts
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/debian-12-9"
+    config.vm.box_version = "1.0.0"
+
+    config.vm.provider "virtualbox" do |vb|
+        vb.memory = "2048"
+        vb.cpus = 2
+    end
+
+    # Directory Server
+    config.vm.define "ds" do |ds|
+        ds.vm.hostname = "ds.homework.lab"
+        ds.vm.network "private_network", ip: "192.168.99.101"
+        ds.vm.provision "shell", inline: $common
+        ds.vm.provision "shell", inline: $dns
+    end
+    
+    # Client
+    config.vm.define "client" do |client|
+        client.vm.hostname = "client.homework.lab"
+        client.vm.network "private_network", ip: "192.168.99.102"
+        client.vm.provision "shell", inline: $common
+        client.vm.provision "shell", inline: $dns
+    end
+  
+end

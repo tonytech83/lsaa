@@ -1,0 +1,4 @@
+dn: ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: organizationalUnit
+ou: People
