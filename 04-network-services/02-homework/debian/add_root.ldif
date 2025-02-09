@@ -1,0 +1,5 @@
+dn: dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: domain
+dc: ds
+description: LDAP Root for ds.homework.lab

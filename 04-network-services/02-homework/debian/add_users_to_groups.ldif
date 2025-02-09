@@ -1,9 +1,11 @@
 dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
 changetype: modify
 add: member
+member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
 member: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 changetype: modify
 add: member
-member: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=patar.radev,ou=People,dc=ds,dc=homework,dc=lab

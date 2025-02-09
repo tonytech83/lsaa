@@ -3,10 +3,15 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Ivan
 sn: Ivanov
 displayName: Ivan Ivanov
 uid: ivan.ivanov
+uidNumber: 10001
+gidNumber: 10001
+homeDirectory: /home/ivan.ivanov
+loginShell: /bin/bash
 userPassword: pass_123456
 
 dn: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
@@ -14,10 +19,15 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Mariya
 sn: Ilieva
 displayName: Mariya Ilieva
 uid: mariya.ilieva
+uidNumber: 10002
+gidNumber: 10002
+homeDirectory: /home/mariya.ilieva
+loginShell: /bin/bash
 userPassword: pass_123456
 
 dn: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
@@ -25,8 +35,13 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Petar
 sn: Radev
 displayName: Petar Radev
 uid: petar.radev
+uidNumber: 10003
+gidNumber: 10003
+homeDirectory: /home/petar.radev
+loginShell: /bin/bash
 userPassword: pass_123123

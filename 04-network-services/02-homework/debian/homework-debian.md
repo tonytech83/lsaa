@@ -31,18 +31,18 @@ Create self-signed certificate database [yes]: yes
 
 Enter secure port number [636]: 636
 
-Enter Directory Manager DN [cn=Directory Manager]: 
+Enter Directory Manager DN [cn=Directory Manager]: cn=Admin
 
 Enter the Directory Manager password: 
 Confirm the Directory Manager Password: 
 
-Enter the database suffix (or enter "none" to skip) [dc=ds,dc=homework,dc=lab]: 
+Enter the database suffix (or enter "none" to skip) [dc=ds,dc=homework,dc=lab]: dc=ds,dc=homework,dc=lab
 
 Create sample entries in the suffix [no]: no
 
-Create just the top suffix entry [no]: yes
+Create just the top suffix entry [no]: no
 
-Do you want to start the instance after the installation? [yes]: yes
+Do you want to start the instance after the installation? [yes]: yes 
 
 Are you ready to install? [no]: yes
 Starting installation ...
@@ -58,33 +58,31 @@ Completed installation for instance: slapd-ds
 3. Start and Enable the 389 Directory Server
 ```sh
 $ sudo systemctl start dirsrv@ds
-
 $ sudo systemctl enable dirsrv@ds
-
 $ sudo systemctl status dirsrv@ds
 ● dirsrv@ds.service - 389 Directory Server ds.
      Loaded: loaded (/lib/systemd/system/dirsrv@.service; enabled; preset: enabled)
     Drop-In: /usr/lib/systemd/system/dirsrv@.service.d
              └─custom.conf
-     Active: active (running) since Sat 2025-02-08 09:58:21 EET; 6min ago
-   Main PID: 19322 (ns-slapd)
+     Active: active (running) since Sat 2025-02-08 19:02:01 EET; 56s ago
+   Main PID: 42149 (ns-slapd)
      Status: "slapd started: Ready to process requests"
       Tasks: 29 (limit: 2306)
-     Memory: 111.6M
-        CPU: 7.585s
+     Memory: 112.2M
+        CPU: 1.593s
      CGroup: /system.slice/system-dirsrv.slice/dirsrv@ds.service
-             └─19322 /usr/sbin/ns-slapd -D /etc/dirsrv/slapd-ds -i /run/dirsrv/slapd-ds.pid
+             └─42149 /usr/sbin/ns-slapd -D /etc/dirsrv/slapd-ds -i /run/dirsrv/slapd-ds.pid
 
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.590356665 +0200] - ERR - attrcrypt_cipher_init - No symmetric key found for cipher AES in backend userroot, attemp>
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.593796457 +0200] - INFO - attrcrypt_cipher_init - Key for cipher AES successfully generated and stored
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.594657484 +0200] - ERR - attrcrypt_cipher_init - No symmetric key found for cipher 3DES in backend userroot, attem>
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.596967310 +0200] - INFO - attrcrypt_cipher_init - Key for cipher 3DES successfully generated and stored
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.633893077 +0200] - INFO - connection_table_new - conntablesize:63936
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.653557352 +0200] - INFO - slapd_daemon - slapd started.  Listening on All Interfaces port 389 for LDAP requests
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.655408073 +0200] - INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS requests
-Feb 08 09:58:21 ds ns-slapd[19322]: [08/Feb/2025:09:58:21.656350628 +0200] - INFO - slapd_daemon - Listening on /run/slapd-ds.socket for LDAPI requests
-Feb 08 09:58:21 ds systemd[1]: Started dirsrv@ds.service - 389 Directory Server ds..
-Feb 08 09:58:24 ds ns-slapd[19322]: [08/Feb/2025:09:58:24.657084636 +0200] - INFO - vattr_check_thread - No role/cos definition in dc=ds,dc=homework,dc=lab
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.267212894 +0200] - NOTICE - bdb_start_autotune - total cache size: 522559488 B;
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.268897348 +0200] - ERR - attrcrypt_cipher_init - No symmetric key found for cipher AES in back>
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.271607677 +0200] - INFO - attrcrypt_cipher_init - Key for cipher AES successfully generated an>
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.272462031 +0200] - ERR - attrcrypt_cipher_init - No symmetric key found for cipher 3DES in bac>
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.274872930 +0200] - INFO - attrcrypt_cipher_init - Key for cipher 3DES successfully generated a>
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.308975879 +0200] - INFO - connection_table_new - conntablesize:63936
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.326909569 +0200] - INFO - slapd_daemon - slapd started.  Listening on All Interfaces port 389 >
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.329849389 +0200] - INFO - slapd_daemon - Listening on All Interfaces port 636 for LDAPS reques>
+Feb 08 19:02:01 ds ns-slapd[42149]: [08/Feb/2025:19:02:01.331750510 +0200] - INFO - slapd_daemon - Listening on /run/slapd-ds.socket for LDAPI requests
+Feb 08 19:02:01 ds systemd[1]: Started dirsrv@ds.service - 389 Directory Server ds..
 ```
 4. Allow LDAP Traffic Through Firewall (Optional)
 ```sh
@@ -143,8 +141,8 @@ result: 0 Success
 # numEntries: 1
 
 # try connection as Directory Manager
-$ ldapsearch -x -H ldap://localhost -D "cn=Directory Manager" -W -b "dc=ds,dc=homework,dc=lab"
-Enter LDAP Password: # writecown the password from initialization
+$ $ ldapsearch -x -H ldap://localhost -D "cn=Admin" -W -b "dc=ds,dc=homework,dc=lab"
+Enter LDAP Password: # write down the password from initialization
 # extended LDIF
 #
 # LDAPv3
@@ -168,7 +166,20 @@ result: 0 Success
 # numEntries: 1
 ```
 
-6. Create OU People
+6. Create Root Domain Object `add_root.ldif`
+```ldif
+dn: dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: domain
+dc: ds
+description: LDAP Root for ds.homework.lab
+```
+7. Import it into the LDAP database
+```sh
+$ ldapadd -x -D "cn=Admin" -W -f add_root.ldif
+```
+
+8. Create OU People
 
 - Prepare LDIF file for UO creation `add_people_ou.ldif`
 ```ldif
@@ -179,13 +190,13 @@ ou: People
 ```
 - Apply the file to LDAP
 ```sh
-$ ldapadd -x -D "cn=Directory Manager" -W -f add_people_ou.ldif
-Enter LDAP Password: # eneter the password
+$ ldapadd -x -D "cn=Admin" -W -f add_people_ou.ldif
+Enter LDAP Password: # enter the password
 adding new entry "ou=People,dc=ds,dc=homework,dc=lab"
 ```
 - Check LDAP after creation
 ```sh
-$ ldapsearch -x -H ldap://localhost -D "cn=Directory Manager" -W -b "dc=ds,dc=homework,dc=lab"
+$ ldapsearch -x -H ldap://localhost -D "cn=Admin" -W -b "dc=ds,dc=homework,dc=lab"
 Enter LDAP Password: # enter the password
 ...
 
@@ -214,17 +225,17 @@ ou: Groups
 ```
 - Apply the LDIF file
 ```sh
-$ ldapadd -x -D "cn=Directory Manager" -W -f add_groups_ou.ldif
+$ ldapadd -x -D "cn=Admin" -W -f add_groups_ou.ldif
 Enter LDAP Password: # enter the password
 adding new entry "ou=Groups,dc=ds,dc=homework,dc=lab"
 ```
 - Verify
 ```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "dc=ds,dc=homework,dc=lab" | grep "^dn:"
-Enter LDAP Password: # enter the password
+$ ldapsearch -x -LLL -D "cn=Admin" -W -b "dc=ds,dc=homework,dc=lab" | grep "^dn:"
+Enter LDAP Password: 
 dn: dc=ds,dc=homework,dc=lab
 dn: ou=People,dc=ds,dc=homework,dc=lab
-dn: ou=Groups,dc=ds,dc=homework,dc=lab
+dn: ou=Groups,dc=ds,dc=homework,dc=la
 ```
 8. Create three users
 - Prepre LDIF file for user creation `add_users.ldif`
@@ -234,10 +245,15 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Ivan
 sn: Ivanov
 displayName: Ivan Ivanov
 uid: ivan.ivanov
+uidNumber: 10001
+gidNumber: 10001
+homeDirectory: /home/ivan.ivanov
+loginShell: /bin/bash
 userPassword: pass_123456
 
 dn: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
@@ -245,10 +261,15 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Mariya
 sn: Ilieva
 displayName: Mariya Ilieva
 uid: mariya.ilieva
+uidNumber: 10002
+gidNumber: 10002
+homeDirectory: /home/mariya.ilieva
+loginShell: /bin/bash
 userPassword: pass_123456
 
 dn: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
@@ -256,15 +277,21 @@ objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
+objectClass: posixAccount
 cn: Petar
 sn: Radev
 displayName: Petar Radev
 uid: petar.radev
+uidNumber: 10003
+gidNumber: 10003
+homeDirectory: /home/petar.radev
+loginShell: /bin/bash
 userPassword: pass_123123
+
 ```
 - Apply the file to LDAP
 ```sh
-$ ldapadd -x -D "cn=Directory Manager" -W -f add_users.ldif
+$ ldapadd -x -D "cn=Admin" -W -f add_users.ldif
 Enter LDAP Password: # enter the password
 adding new entry "uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab"
 adding new entry "uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab"
@@ -272,7 +299,7 @@ adding new entry "uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab"
 ```
 - Veryfy the users
 ```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "ou=People,dc=ds,dc=homework,dc=lab" uid displayName
+$ ldapsearch -x -LLL -D "cn=Admin" -W -b "ou=People,dc=ds,dc=homework,dc=lab" uid displayName
 Enter LDAP Password: # enter the password
 dn: ou=People,dc=ds,dc=homework,dc=lab
 
@@ -295,17 +322,15 @@ dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
 objectClass: top
 objectClass: groupOfNames
 cn: Accountant
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 objectClass: top
 objectClass: groupOfNames
 cn: Commercial
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
 ```
 - Apply the file to LDAP
 ```sh
-$ ldapadd -x -D "cn=Directory Manager" -W -f add_groups.ldif 
+$ ldapadd -x -D "cn=Admin" -W -f add_groups.ldif 
 Enter LDAP Password: 
 adding new entry "cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab"
 
@@ -313,7 +338,7 @@ adding new entry "cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab"
 ```
 - Verify
 ```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" dn
+$ ldapsearch -x -LLL -D "cn=Admin" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" dn
 Enter LDAP Password: 
 dn: ou=Groups,dc=ds,dc=homework,dc=lab
 
@@ -321,22 +346,24 @@ dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 ```
-10.   Add user `ivan.ivanov` to groups `Accountant` and `Commercial`
+10.   Add users to groups
 - Prepare LDIF file `add_users_to_groups.ldif`
 ```ldif
 dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
 changetype: modify
 add: member
 member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 changetype: modify
 add: member
 member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=patar.radev,ou=People,dc=ds,dc=homework,dc=lab
 ```
 - Apply the file against LDAP
 ```sh
-$ ldapmodify -x -D "cn=Directory Manager" -W -f add_user_to_groups.ldif
+$ ldapmodify -x -D "cn=Admin" -W -f add_users_to_groups.ldif
 Enter LDAP Password: # enter the password
 modifying entry "cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab"
 
@@ -344,78 +371,7 @@ modifying entry "cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab"
 ```
 - Verify
 ```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" member
-Enter LDAP Password: 
-dn: ou=Groups,dc=ds,dc=homework,dc=lab
-
-dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
-member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-
-dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
-member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-```
-
-> [!IMPORTANT]
-> We found that when groups are created `cn=Directory Manager` was automatically added. As a proctice in corporate organization Directory manager should not be part of departments groups.
-
-- Prepare new LDIF file `remove_directory_manager.ldif` for removing Directory Manager from departments groups.
-```ldif
-dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
-changetype: modify
-delete: member
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
-
-dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
-changetype: modify
-delete: member
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
-```
-- Apply the file against the LDAP
-```sh
-$ ldapmodify -x -D "cn=Directory Manager" -W -f remove_directory_manager.ldif
-Enter LDAP Password: # enter the password
-modifying entry "cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab"
-
-modifying entry "cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab"
-```
-- Verify
-```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" member
-Enter LDAP Password: # enter the password
-dn: ou=Groups,dc=ds,dc=homework,dc=lab
-
-dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
-member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-
-dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
-member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-```
-11. Add two users to two groups.
-- Prepare LDIF file `add_two_users_to_two_groups.ldif`
-```ldif
-dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
-changetype: modify
-add: member
-member: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
-
-dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
-changetype: modify
-add: member
-member: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
-```
-- Apply the file against the LDAP
-```sh
-$ ldapmodify -x -D "cn=Directory Manager" -W -f add_two_users_to_two_groups.ldif 
-Enter LDAP Password: 
-modifying entry "cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab"
-
-modifying entry "cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab"
-```
-- Verify
-```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" member
+$ ldapsearch -x -LLL -D "cn=Admin" -W -b "ou=Groups,dc=ds,dc=homework,dc=lab" member
 Enter LDAP Password: 
 dn: ou=Groups,dc=ds,dc=homework,dc=lab
 
@@ -425,80 +381,97 @@ member: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-member: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
-```
-12. Extracts the server certificate (Server-Cert) from the 389-DS internal certificate database and saves it as PEM format in `/etc/dirsrv/slapd-ds/ca.crt`
-```sh
-$ sudo certutil -d /etc/dirsrv/slapd-ds/ -L -n "Server-Cert" -a | sudo tee /etc/dirsrv/slapd-ds/ca.crt > /dev/null
-```
-13. Adjust Permissions and Copy the File
-```sh
-$ sudo chmod 644 /etc/dirsrv/slapd-ds/ca.crt
-
-$ su
-Password: # enter root password
-```
-14. Copy the CA certificate to the client machine (192.168.99.102)
-```sh
-$ scp /etc/dirsrv/slapd-ds/ca.crt vagrant@192.168.99.102:/tmp/
-```
-15. Fix `ivan.ivanov` user to had:
-- uidNumber
-- gidNumber
-- loginShell
-- homeDirectory
-  
-Create LDIF file `fix_ivan_ldap.ldif`
-```ldif
-dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-changetype: modify
-add: objectClass
-objectClass: posixAccount
--
-add: uidNumber
-uidNumber: 10001
--
-add: gidNumber
-gidNumber: 10001
--
-add: loginShell
-loginShell: /bin/bash
--
-add: homeDirectory
-homeDirectory: /home/ivan.ivanov
-```
-16. Apply the file against the LDAP
-```sh
-$ ldapmodify -x -D "cn=Directory Manager" -W -f fix_ivan_ldap.ldif 
-Enter LDAP Password: # enter the password
-modifying entry "uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab"
-```
-17. Verify the fix
-```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -b "dc=ds,dc=homework,dc=lab" "(uid=ivan.ivanov)"
-Enter LDAP Password: 
-dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-objectClass: posixAccount
-cn: Ivan
-sn: Ivanov
-displayName: Ivan Ivanov
-uid: ivan.ivanov
-userPassword:: e1BCS0RGMi1TSEE1MTJ9MTAwMDAkcG9YYWJyc0VuYlU2WjBEMElNMFVjSDgrQnB
- rTHdOaUckSXpaRFFzUVF3Ym5LaWtHT1JPQUtIV2tlVksxUE5jOHc4MWFyUEpqbHMyY2NLYXRNOVEw
- QThCdE5QR0RPdWJVei9YQ1lsY2ZNSFRNak1PcDBXWGk4bWc9PQ==
-uidNumber: 10001
-gidNumber: 10001
-loginShell: /bin/bash
-homeDirectory: /home/ivan.ivanov
+member: uid=patar.radev,ou=People,dc=ds,dc=homework,dc=lab
 ```
 ### Clien setup (192.168.99.102)
+
+#### SSSD (Working)
+
+1. Install SSSD and necessary utilities
+```sh
+$ sudo apt update
+$ sudo apt install -y sssd sssd-tools libnss-sss libpam-sss ldap-utils
+```
+2. Confire SSSD. Create or modify `/etc/sssd/sssd.conf`
+```conf
+[sssd]
+config_file_version = 2
+services = nss, pam
+domains = ds.homework.lab
+
+[domain/ds.homework.lab]
+id_provider = ldap
+auth_provider = ldap
+chpass_provider = ldap
+ldap_uri = ldap://192.168.99.101
+ldap_search_base = dc=ds,dc=homework,dc=lab
+ldap_tls_reqcert = never
+cache_credentials = true
+enumerate = true
+
+ldap_schema = rfc2307bis
+ldap_user_search_base = ou=People,dc=ds,dc=homework,dc=lab
+ldap_group_search_base = ou=Groups,dc=ds,dc=homework,dc=lab
+ldap_user_object_class = posixAccount
+ldap_group_object_class = posixGroup
+ldap_default_bind_dn = cn=Admin,dc=ds,dc=homework,dc=lab
+ldap_default_authtok = New_123123
+
+[nss]
+homedir_substring = /home
+```
+3. Set correct permissions
+```sh
+$ sudo chmod 600 /etc/sssd/sssd.conf
+$ sudo chown root:root /etc/sssd/sssd.conf
+```
+4. Enable and start SSSD service
+```sh
+$ sudo systemctl enable sssd --now
+Synchronizing state of sssd.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install enable sssd
+
+$ sudo systemctl restart sssd
+```
+5. Check SSSD service status
+```sh
+$ systemctl status sssd
+● sssd.service - System Security Services Daemon
+     Loaded: loaded (/lib/systemd/system/sssd.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2025-02-09 09:28:06 EET; 32s ago
+   Main PID: 26281 (sssd)
+      Tasks: 4 (limit: 2306)
+     Memory: 43.3M
+        CPU: 76ms
+     CGroup: /system.slice/sssd.service
+             ├─26281 /usr/sbin/sssd -i --logger=files
+             ├─26283 /usr/libexec/sssd/sssd_be --domain ds.homework.lab --uid 0 --gid 0 --logger=files
+             ├─26284 /usr/libexec/sssd/sssd_nss --uid 0 --gid 0 --logger=files
+             └─26285 /usr/libexec/sssd/sssd_pam --uid 0 --gid 0 --logger=files
+```
+6. Testing LDAP user resolution
+```sh
+$ sudo sssctl user-show ivan.ivanov
+Name: ivan.ivanov
+Cache entry creation date: 02/09/25 10:03:31
+Cache entry last update time: 02/09/25 10:03:31
+Cache entry expiration time: 02/09/25 11:33:31
+Initgroups expiration time: Initgroups were not yet performed
+Cached in InfoPipe: No
+```
+7. Try login
+```sh
+vagrant@client:~$ su - ivan.ivanov
+Password: 
+Creating directory '/home/ivan.ivanov'.
+ivan.ivanov@client:~$
+```
+
+#### nscd - Name service cache daemon (Not working)
+
 1. Install required packages
 ```sh
-$ sudo apt update && sudo apt install -y libnss-ldap libpam-ldap ldap-utils nscd
+$ sudo apt update && sudo apt install -y libnss-ldap libpam-ldap ldap-utils nscd nslcd
 ```
 1. Perform the interactive setup (comes form `libnss-ldap` and `libpam-ldap`)
 - LDAP server URI:
@@ -507,21 +480,17 @@ $ sudo apt update && sudo apt install -y libnss-ldap libpam-ldap ldap-utils nscd
 - Distinguished name
   
 ![name](media/pic-2.png)
-- Encrypted connection
 
-![encrypted_connection](media/pic-3.png)
-- Essential options
-- 
-These are the minimum required for login to work via LDAP:
+- Essential options. These are the minimum required for login to work via LDAP:
 
 **passwd** -> Enables LDAP for user authentication
 
 **group** -> Enables LDAP for group membership
 
 **shadow** -> Enables LDAP for password storage
-![options](media/pic-4.png)
+![options](media/pic-3.png)
 
-3. Ensure that Debian will use LDAP for user and group lookups by modifying `/etc/nsswitch.conf`. Add `ldap` on first three uncommented rows.
+1. Ensure that Debian will use LDAP for user and group lookups by modifying `/etc/nsswitch.conf`. Add `ldap` on first three uncommented rows.
 ```conf
 # /etc/nsswitch.conf
 #
@@ -544,58 +513,14 @@ rpc:            db files
 
 netgroup:       nis
 ```
-4. Restart service if needed
-```sh
-$ sudo systemctl restart nscd
-```
-5. Move the CA certificate to the trusted directory
-```sh
-$ sudo mv /tmp/ca.crt /usr/local/share/ca-certificates/ldap-ca.crt
-```
-1. Update the CA store
-```sh
-$ sudo update-ca-certificates
-Updating certificates in /etc/ssl/certs...
-rehash: warning: skipping ca-certificates.crt,it does not contain exactly one certificate or CRL
-1 added, 0 removed; done.
-Running hooks in /etc/ca-certificates/update.d...
-done.
-```
-7. Configure LDAP client authentication. Edit `/etc/ldap/ldap.conf`. Fix uri from `ldaps://192.168.99.101` to `ldaps://ds.homework.lab`, because of the LDAP server (389-ds) has a certificate with CN (Common Name) ds.homework.lab, NOT 192.168.99.101.
+4. Configure `/etc/nslcd.conf`
 ```conf
-#
-# LDAP Defaults
-#
-
-# See ldap.conf(5) for details
-# This file should be world readable but not world writable.
-
-#BASE   dc=example,dc=com
-#URI    ldap://ldap.example.com ldap://ldap-provider.example.com:666
-
-#SIZELIMIT      12
-#TIMELIMIT      15
-#DEREF          never
-
-# TLS certificates (needed for GnuTLS)
-# TLS_CACERT    /etc/ssl/certs/ca-certificates.crt
-
-BASE    dc=ds,dc=homework,dc=lab
-URI     ldaps://192.168.99.101
-TLS_CACERT /etc/ssl/certs/ldap-ca.pem
-```
-8. Ckeck `/etc/nslcd.conf`
-```conf
-# /etc/nslcd.conf
-# nslcd configuration file. See nslcd.conf(5)
-# for details.
-
 # The user and group nslcd should run as.
 uid nslcd
 gid nslcd
 
 # The location at which the LDAP server(s) should be reachable.
-uri ldaps://ds.homework.lab/
+uri ldap://ds.homework.lab
 
 # The search base that will be used for all queries.
 base dc=ds,dc=homework,dc=lab
@@ -604,44 +529,25 @@ base dc=ds,dc=homework,dc=lab
 #ldap_version 3
 
 # The DN to bind with for normal lookups.
-#binddn cn=annonymous,dc=example,dc=net
-#bindpw secret
+binddn cn=Admin
+bindpw New_123123
 
-# The DN used for password modifications by root.
-#rootpwmoddn cn=admin,dc=example,dc=com
-
-# SSL options
-#ssl off
-tls_reqcert allow
-tls_cacertfile /etc/ssl/certs/ldap-ca.pem # chaneged
-
-# The search scope.
-#scope **sub**
+filter passwd (objectClass=posixAccount)
+filter group (objectClass=posixGroup)
 ```
-9. Restart services
+5. Restart services
 ```sh
 $ sudo systemctl restart nslcd
+$ sudo systemctl restart nscd
 ```
-10. Check user `ivan.ivanov` exists
+6. Verify `getent passwd` works
 ```sh
-$ ldapsearch -x -LLL -D "cn=Directory Manager" -W -H ldaps://ds.homework.lab -b "dc=ds,dc=homework,dc=lab" "(uid=ivan.ivanov)"
-Enter LDAP Password: 
-dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
-objectClass: top
-objectClass: person
-objectClass: organizationalPerson
-objectClass: inetOrgPerson
-cn: Ivan
-sn: Ivanov
-displayName: Ivan Ivanov
-uid: ivan.ivanov
-userPassword:: e1BCS0RGMi1TSEE1MTJ9MTAwMDAkcG9YYWJyc0VuYlU2WjBEMElNMFVjSDgrQnB
- rTHdOaUckSXpaRFFzUVF3Ym5LaWtHT1JPQUtIV2tlVksxUE5jOHc4MWFyUEpqbHMyY2NLYXRNOVEw
- QThCdE5QR0RPdWJVei9YQ1lsY2ZNSFRNak1PcDBXWGk4bWc9PQ==
+$ getent passwd ivan.ivanov
+ivan.ivanov:*:10001:10001:Ivan:/home/ivan.ivanov:/bin/bash
 ```
-11. Check user authentication
+7. Try loggin
 ```sh
-$ ldapwhoami -x -D "uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab" -W -H ldaps://ds.homework.lab
-Enter LDAP Password: 
-dn: uid=ivan.ivanov,ou=people,dc=ds,dc=homework,dc=lab
+$ su - ivan.ivanov
+su: Authentication failure
 ```
+

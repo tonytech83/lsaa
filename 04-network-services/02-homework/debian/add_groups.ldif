@@ -2,10 +2,8 @@ dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
 objectClass: top
 objectClass: groupOfNames
 cn: Accountant
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
 
 dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
 objectClass: top
 objectClass: groupOfNames
 cn: Commercial
-member: cn=Directory Manager,dc=ds,dc=homework,dc=lab
