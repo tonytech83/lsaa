@@ -1,0 +1,91 @@
+# Add root
+dn: dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: domain
+dc: ds
+description: LDAP Root for ds.homework.lab
+
+# Add Groups OU
+dn: ou=Groups,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+# Add People OU
+dn: ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: organizationalUnit
+ou: People
+
+# Add two groups
+dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: groupOfNames
+cn: Accountant
+
+dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: groupOfNames
+cn: Commercial
+
+# Add users
+dn: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+cn: Ivan
+sn: Ivanov
+displayName: Ivan Ivanov
+uid: ivan.ivanov
+uidNumber: 10001
+gidNumber: 10001
+homeDirectory: /home/ivan.ivanov
+loginShell: /bin/bash
+userPassword: pass_123456
+
+dn: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+cn: Mariya
+sn: Ilieva
+displayName: Mariya Ilieva
+uid: mariya.ilieva
+uidNumber: 10002
+gidNumber: 10002
+homeDirectory: /home/mariya.ilieva
+loginShell: /bin/bash
+userPassword: pass_123456
+
+dn: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: posixAccount
+cn: Petar
+sn: Radev
+displayName: Petar Radev
+uid: petar.radev
+uidNumber: 10003
+gidNumber: 10003
+homeDirectory: /home/petar.radev
+loginShell: /bin/bash
+userPassword: pass_123123
+
+# Add users to groups
+dn: cn=Accountant,ou=Groups,dc=ds,dc=homework,dc=lab
+changetype: modify
+add: member
+member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=mariya.ilieva,ou=People,dc=ds,dc=homework,dc=lab
+
+dn: cn=Commercial,ou=Groups,dc=ds,dc=homework,dc=lab
+changetype: modify
+add: member
+member: uid=ivan.ivanov,ou=People,dc=ds,dc=homework,dc=lab
+member: uid=petar.radev,ou=People,dc=ds,dc=homework,dc=lab
