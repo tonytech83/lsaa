@@ -329,4 +329,4 @@ $ curl http://localhost:80
 ```
 11. Check web server outside of Docker host
  
-![pic-suse](../madia/pic-suse.png)
+![pic-suse](../media/pic-suse.png)

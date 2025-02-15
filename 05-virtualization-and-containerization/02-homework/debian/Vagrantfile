@@ -1,0 +1,37 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/debian-12-9"
+    config.vm.box_version = "1.0.0"
+
+    # Incus server
+    config.vm.define "incus" do |incus|
+        incus.vm.hostname = "incus.homework.lab"
+        incus.vm.network "private_network", ip: "192.168.99.101"
+        incus.vm.provision "shell", inline: $dns
+        incus.vm.provider "virtualbox" do |vb|
+            vb.memory = 4096
+            vb.cpus = 2
+            # Enabling nested virtualization
+            vb.customize ['modifyvm', :id, '--nested-hw-virt', 'on' ]
+            # Configure a third network interface 
+            vb.customize ['modifyvm', :id, '--nic3', 'intnet']
+        end
+    end
+
+end
+
