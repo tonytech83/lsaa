@@ -1,16 +1,16 @@
 FROM centos/httpd
 
-# Set the working directory
+# set the working directory
 WORKDIR /var/www/html
 
-# Copy index.html into WORKDIR 
+# copy index.html into WORKDIR 
 COPY index.html .
 
-# Set correct permissions for WORKDIR
+# set correct permissions for WORKDIR
 RUN chmod -R 755 .
 
-# Expose port 80
+# expose port 80
 EXPOSE 80
 
-# Start Apache in foreground mode
+# start Apache in foreground mode
 ENTRYPOINT ["httpd","-D","FOREGROUND"]

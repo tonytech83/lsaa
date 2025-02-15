@@ -213,14 +213,120 @@ Accept-Ranges: bytes
 $ sudo sysctl -p
 net.ipv4.ip_forward = 1
 
-# Forward port 80 from Incus host( 192.168.99.101) to container( 10.112.131.131)
-$ sudo iptables -t nat -A PREROUTING -i eth1 -p tcp --dport 80 -j DNAT --to-destination 10.112.131.131:80
+# use Incus proxy device
+$ incus config device add arch-nginx-container myproxy80 proxy listen=tcp:0.0.0.0:80 connect=tcp:10.112.131.131:80
 
-# Add masquerade 
-$ sudo iptables -t nat -A POSTROUTING -o incusbr0 -p tcp --dport 80 -j MASQUERADE
+# Check if Incus host listening on port 80
+$ sudo ss -tlnp | grep :80
+LISTEN 0      4096               *:80              *:*    users:(("incusd",pid=30620,fd=7),("incusd",pid=30620,fd=3))
 ```
-21.  Allow Traffic Through the Firewall
+21.  Allow traffic on port 80/tcp 
 ```sh
-$ sudo firewall-cmd --zone=trusted --add-masquerade --permanent
+$ sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
 $ sudo firewall-cmd --reload
 ```
+22. Check access nginx web server outside Incus host
+```sh
+$ curl -I -m 5 http://192.168.99.101
+
+HTTP/1.1 200 OK
+Server: nginx/1.26.3
+Date: Sat, 15 Feb 2025 16:33:47 GMT
+Content-Type: text/html
+Content-Length: 615
+Last-Modified: Wed, 05 Feb 2025 22:00:23 GMT
+Connection: keep-alive
+ETag: "67a3df77-267"
+Accept-Ranges: bytes
+```
+
+## Create own Docker image based on CentOS or openSUSE that includes Apache web server and custom index page with some text (for example your SoftUni username) and a picture (of a cat, a dog, or whatever you like)
+
+1. Install Docker
+```sh
+# add the official Docker repository
+$ sudo zypper addrepo https://download.opensuse.org/repositories/Virtualization:containers/openSUSE_Leap_15.6/ docker
+
+# refresh repos
+sudo zypper refresh
+
+# install Docker
+sudo zypper install docker
+```
+2. Start and enable Docker service
+```sh
+$ sudo systemctl enable --now docker
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+```
+3. Add user to **docker** group
+```sh
+$ sudo usermod -aG docker vagrant # log out and log in
+```
+4. Create directory for Apache server files
+```sh
+$ mkdir apache-server
+$ cd apache-server
+```
+5. Crete `Dockerfile`
+```Dockerfile
+FROM opensuse/leap:15.6
+
+# set the working directory
+WORKDIR /srv/www/htdocs
+
+# install Apache
+RUN zypper refresh && \
+    zypper install -y apache2 && \
+    zypper clean --all
+
+# copy index.html to workdir
+COPY index.html /srv/www/htdocs/index.html
+
+EXPOSE 80
+
+# Start Apache server
+CMD ["/usr/sbin/httpd", "-D", "FOREGROUND"]
+```
+6. Create `index.html`
+```html
+<html>
+  <head>
+    <title>HOMEWORK</title>
+  </head>
+  <body>
+    <h1>Created by: tonytech</h1>
+    <img src="https://i.ytimg.com/vi/rBqKnh9ws_g/sddefault.jpg" alt="The cat" width="500" height="600">
+  </body>
+</html>
+```
+7. Build and tag the Docker image
+```sh
+$ docker build -t homework:1.0 .
+```
+8. Check current images
+```sh
+$ docker images
+REPOSITORY   TAG       IMAGE ID       CREATED         SIZE
+homework     1.0       0ab2363ed240   8 seconds ago   134MB
+```
+9. Run the Docker image as a container
+```sh
+$ docker run --name homework-container -d -p 80:80 homework:1.0
+59eab9cb6c5231763aef8727040a6f0bcbb7672bbdc4400abe2df4c99cf27020
+```
+10. Check web server from Docker host (192.168.99.101)
+```sh
+$ curl http://localhost:80
+<html>
+  <head>
+    <title>HOMEWORK</title>
+  </head>
+  <body>
+    <h1>Created by: tonytech</h1>
+    <img src="https://i.ytimg.com/vi/rBqKnh9ws_g/sddefault.jpg" alt="The cat" width="500" height="600">
+  </body>
+</html>
+```
+11. Check web server outside of Docker host
+ 
+![pic-suse](../madia/pic-suse.png)
