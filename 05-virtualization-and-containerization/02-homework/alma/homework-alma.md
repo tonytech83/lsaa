@@ -282,3 +282,91 @@ Connection: keep-alive
 ETag: "67b04aab-267"
 Accept-Ranges: bytes
 ```
+
+## Create own Docker image based on CentOS or openSUSE that includes Apache web server and custom index page with some text (for example your SoftUni username) and a picture (of a cat, a dog, or whatever you like)
+
+1. Add official **Docker** repository
+```sh
+$ sudo dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+Adding repo from: https://download.docker.com/linux/centos/docker-ce.repo
+```
+2. Install Docker
+```sh
+$ sudo dnf install docker-ce
+```
+3. Add user to docker group
+```sh
+$ sudo usermod -aG docker vagrant
+```
+4. Start and enable docker service
+```sh
+$ sudo systemctl enable --now docker
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+```
+5. Create directory for Apache server files 
+```sh
+$ mkdir apache-server
+$ cd apache-server
+```
+6. Crete `Dockerfile`
+```Dockerfile
+FROM centos/httpd
+
+# Set the working directory
+WORKDIR /var/www/html
+
+# Copy index.html into WORKDIR 
+COPY index.html .
+
+# Set correct permissions for WORKDIR
+RUN chmod -R 755 .
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache in foreground mode
+ENTRYPOINT ["httpd","-D","FOREGROUND"]
+```
+7. Create `index.html`
+```html
+<html>
+  <head>
+    <title>HOMEWORK</title>
+  </head>
+  <body>
+    <h1>Created by: tonytech</h1>
+    <img src="https://i.ytimg.com/vi/czR6DrMptJE/sddefault.jpg" alt="The cat" width="500" height="600">
+  </body>
+</html>
+```
+8. Build and tag the Docker image
+```sh
+$ docker build -t homework:1.0 .
+```
+9. Check current images
+```sh
+$ docker images
+REPOSITORY   TAG       IMAGE ID       CREATED          SIZE
+homework     1.0       2a678737e85b   51 seconds ago   258MB
+```
+10. Run the Docker image as a container
+```sh
+$ docker run --name homework-container -d -p 80:80 homework:1.0  
+fa635a7b81c64d8565fe9bd12c31b53735bed3e4ee646788b4f544bd0a96c5c8
+```
+11. Check web server from Docker host (192.168.99.101)
+```sh
+$ curl http://localhost:80
+<html>
+  <head>
+    <title>HOMEWORK</title>
+  </head>
+  <body>
+    <h1>Created by: tonytech</h1>
+    <img src="https://i.ytimg.com/vi/czR6DrMptJE/sddefault.jpg" alt="The cat" width="500" height="600">
+  </body>
+</html>
+```
+12. Check web server outside of Docker host
+
+![pic-1](../madia/pic-alma.png)
