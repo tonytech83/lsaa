@@ -30,7 +30,7 @@ Executing: /lib/systemd/systemd-sysv-install enable incus
 ```
 4. Initialize **Incus**
 ```sh
-$ sudo incus admin init
+$$ sudo incus admin init
 Would you like to use clustering? (yes/no) [default=no]: no
 Do you want to configure a new storage pool? (yes/no) [default=yes]: yes
 Name of the new storage pool [default=default]: debian-storage
@@ -38,7 +38,7 @@ Where should this storage pool store its data? [default=/var/lib/incus/storage-p
 Would you like to create a new local network bridge? (yes/no) [default=yes]: yes
 What should the new bridge be called? [default=incusbr0]: 
 What IPv4 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]: 
-What IPv6 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]: none
+What IPv6 address should be used? (CIDR subnet notation, “auto” or “none”) [default=auto]: 
 Would you like the server to be available over the network? (yes/no) [default=no]: yes
 Address to bind to (not including port) [default=all]: 
 Port to bind to [default=8443]: 
@@ -49,7 +49,7 @@ config:
 networks:
 - config:
     ipv4.address: auto
-    ipv6.address: none
+    ipv6.address: auto
   description: ""
   name: incusbr0
   type: ""
@@ -78,11 +78,8 @@ cluster: null
 5. Setup firewall if needed
 ```sh
 # check if firewall is active
-$ sudo ufw status verbose
+$ sudo ufw status
 Status: active
-Logging: on (low)
-Default: deny (incoming), allow (outgoing), deny (routed)
-New profiles: skip
 
 # allow Incus bridge
 $ sudo ufw allow in on incusbr0
@@ -95,7 +92,7 @@ Firewall reloaded
 ```
 6. Restart Incus service
 ```sh
-sudo systemctl restart incus
+$ sudo systemctl restart incus
 ```
 7. Search for base image (lets chose Fedora)
 ```sh
@@ -109,11 +106,11 @@ Launching fedora-template
 9. Check running containers
 ```sh
 $ incus list                        
-+-----------------+---------+--------------------+------+-----------+-----------+
-|      NAME       |  STATE  |        IPV4        | IPV6 |   TYPE    | SNAPSHOTS |
-+-----------------+---------+--------------------+------+-----------+-----------+
-| fedora-template | RUNNING | 10.76.80.48 (eth0) |      | CONTAINER | 0         |
-+-----------------+---------+--------------------+------+-----------+-----------+
++-----------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+|      NAME       |  STATE  |         IPV4         |                     IPV6                      |   TYPE    | SNAPSHOTS |
++-----------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+| fedora-template | RUNNING | 10.36.231.215 (eth0) | fd42:84c8:a7b5:f187:216:3eff:fec4:eebc (eth0) | CONTAINER | 0         |
++-----------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
 ```
 10. Install nginx from Incus host
 ```sh
@@ -154,10 +151,10 @@ Feb 15 18:03:21 fedora-template systemd[1]: Started nginx.service - The nginx HT
 ```
 13. Check web service from Incus host (192.168.99.101)
 ```sh
-$ curl -I http://10.76.80.48
+$ curl -I http://10.36.231.215
 HTTP/1.1 200 OK
 Server: nginx/1.26.3
-Date: Sat, 15 Feb 2025 18:06:09 GMT
+Date: Sun, 16 Feb 2025 08:04:35 GMT
 Content-Type: text/html
 Content-Length: 8474
 Last-Modified: Mon, 20 Feb 2023 17:42:39 GMT
@@ -172,7 +169,7 @@ $ incus stop fedora-template
 15. Crete image from `fedora-template` container
 ```sh
 $ incus publish fedora-template --alias fedora-nginx
-Instance published with fingerprint: f2d392912c8a710115c2f130a3ece780a2f65c7bfa8042079928375162ebafc9
+Instance published with fingerprint: b874108880b47748a567e52427583e992a542d49d26d724d8c614e7216ab98da
 ```
 16. Change the description of newly created image
 ```sh
@@ -184,9 +181,9 @@ $ incus image list
 +--------------+--------------+--------+----------------------------------+--------------+-----------+-----------+----------------------+
 |    ALIAS     | FINGERPRINT  | PUBLIC |           DESCRIPTION            | ARCHITECTURE |   TYPE    |   SIZE    |     UPLOAD DATE      |
 +--------------+--------------+--------+----------------------------------+--------------+-----------+-----------+----------------------+
-| fedora-nginx | f2d392912c8a | no     | Fedora 41 with Nginx             | x86_64       | CONTAINER | 231.74MiB | 2025/02/15 20:07 EET |
+| fedora-nginx | b874108880b4 | no     | Fedora 41 with Nginx             | x86_64       | CONTAINER | 231.65MiB | 2025/02/16 10:05 EET |
 +--------------+--------------+--------+----------------------------------+--------------+-----------+-----------+----------------------+
-|              | a2a699d5ef49 | no     | Fedora 41 amd64 (20250214_20:33) | x86_64       | CONTAINER | 100.20MiB | 2025/02/15 19:31 EET |
+|              | 29d6c79ffb12 | no     | Fedora 41 amd64 (20250215_20:33) | x86_64       | CONTAINER | 100.19MiB | 2025/02/16 10:02 EET |
 +--------------+--------------+--------+----------------------------------+--------------+-----------+-----------+----------------------+
 ```
 18. Create a new container from our image
@@ -196,13 +193,13 @@ Launching fedora-nginx-container
 
 # verify running containers
 $ incus list                         
-+------------------------+---------+--------------------+------+-----------+-----------+
-|          NAME          |  STATE  |        IPV4        | IPV6 |   TYPE    | SNAPSHOTS |
-+------------------------+---------+--------------------+------+-----------+-----------+
-| fedora-nginx-container | RUNNING | 10.76.80.66 (eth0) |      | CONTAINER | 0         |
-+------------------------+---------+--------------------+------+-----------+-----------+
-| fedora-template        | STOPPED |                    |      | CONTAINER | 0         |
-+------------------------+---------+--------------------+------+-----------+-----------+
++------------------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+|          NAME          |  STATE  |         IPV4         |                     IPV6                      |   TYPE    | SNAPSHOTS |
++------------------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+| fedora-nginx-container | RUNNING | 10.36.231.185 (eth0) | fd42:84c8:a7b5:f187:216:3eff:fef3:e09d (eth0) | CONTAINER | 0         |
++------------------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
+| fedora-template        | STOPPED |                      |                                               | CONTAINER | 0         |
++------------------------+---------+----------------------+-----------------------------------------------+-----------+-----------+
 ```
 19. Verify that nginx web server is running inside container
 ```sh
@@ -213,31 +210,31 @@ $ incus exec fedora-nginx-container -- systemctl status nginx
              └─10-timeout-abort.conf, 50-keep-warm.conf
              /run/systemd/system/service.d
              └─zzz-lxc-service.conf
-     Active: active (running) since Sat 2025-02-15 18:09:38 UTC; 49s ago
- Invocation: 398c02cad43b4e8ba1ad522ed73ef191
-    Process: 186 ExecStartPre=/usr/bin/rm -f /run/nginx.pid (code=exited, status=0/SUCCESS)
-    Process: 188 ExecStartPre=/usr/sbin/nginx -t (code=exited, status=0/SUCCESS)
-    Process: 190 ExecStart=/usr/sbin/nginx (code=exited, status=0/SUCCESS)
-   Main PID: 191 (nginx)
+     Active: active (running) since Sun 2025-02-16 08:07:04 UTC; 28s ago
+ Invocation: d4369b749d7b4620963d9bf2f5bef2d6
+    Process: 182 ExecStartPre=/usr/bin/rm -f /run/nginx.pid (code=exited, status=0/SUCCESS)
+    Process: 184 ExecStartPre=/usr/sbin/nginx -t (code=exited, status=0/SUCCESS)
+    Process: 186 ExecStart=/usr/sbin/nginx (code=exited, status=0/SUCCESS)
+   Main PID: 187 (nginx)
       Tasks: 3 (limit: 4644)
      Memory: 3.2M (peak: 3.4M)
-        CPU: 39ms
+        CPU: 34ms
      CGroup: /system.slice/nginx.service
-             ├─191 "nginx: master process /usr/sbin/nginx"
-             ├─192 "nginx: worker process"
-             └─193 "nginx: worker process"
+             ├─187 "nginx: master process /usr/sbin/nginx"
+             ├─188 "nginx: worker process"
+             └─189 "nginx: worker process"
 
-Feb 15 18:09:38 fedora-nginx-container systemd[1]: Starting nginx.service - The nginx HTTP and reverse proxy server...
-Feb 15 18:09:38 fedora-nginx-container nginx[188]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-Feb 15 18:09:38 fedora-nginx-container nginx[188]: nginx: configuration file /etc/nginx/nginx.conf test is successful
-Feb 15 18:09:38 fedora-nginx-container systemd[1]: Started nginx.service - The nginx HTTP and reverse proxy server.
+Feb 16 08:07:04 fedora-nginx-container systemd[1]: Starting nginx.service - The nginx HTTP and reverse proxy server...
+Feb 16 08:07:04 fedora-nginx-container nginx[184]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+Feb 16 08:07:04 fedora-nginx-container nginx[184]: nginx: configuration file /etc/nginx/nginx.conf test is successful
+Feb 16 08:07:04 fedora-nginx-container systemd[1]: Started nginx.service - The nginx HTTP and reverse proxy server.
 ```
 20. Test nginx serving page from Incus host (192.168.99.101)
 ```sh
-$ curl -I http://10.76.80.66
+$ curl -I http://10.36.231.185
 HTTP/1.1 200 OK
 Server: nginx/1.26.3
-Date: Sat, 15 Feb 2025 18:11:15 GMT
+Date: Sun, 16 Feb 2025 08:08:29 GMT
 Content-Type: text/html
 Content-Length: 8474
 Last-Modified: Mon, 20 Feb 2023 17:42:39 GMT
@@ -245,7 +242,38 @@ Connection: keep-alive
 ETag: "63f3b10f-211a"
 Accept-Ranges: bytes
 ```
-TODO: finish it
+21. Make container service visible outside of Incus host
+```sh
+# creates a new table called nat
+$ sudo nft add table ip nat
+# Create a PREROUTING chain for incoming NAT
+$ sudo nft add chain ip nat prerouting { type nat hook prerouting priority -100 \; }
+# Create a POSTROUTING chain for outgoing NAT
+$ sudo nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; }
+# add port forwarding rule
+$ sudo nft add rule ip nat prerouting ip daddr 192.168.99.101 tcp dport 80 dnat to 10.36.231.185
+# add masquerade rule
+$ sudo nft add rule ip nat postrouting ip daddr 10.36.231.185 tcp dport 80 masquerade
+# Save the rules to /etx/nftables.conf
+$ sudo nft list ruleset | sudo tee /etc/nftables.conf
+```
+22. Restart nftables service
+```sh
+$ sudo systemctl restart nftables
+```
+23. Check access outside Incus host
+```sh
+$ curl -I -m 5 http://192.168.99.101
+HTTP/1.1 200 OK
+Server: nginx/1.26.3
+Date: Sun, 16 Feb 2025 08:49:03 GMT
+Content-Type: text/html
+Content-Length: 8474
+Last-Modified: Mon, 20 Feb 2023 17:42:39 GMT
+Connection: keep-alive
+ETag: "63f3b10f-211a"
+Accept-Ranges: bytes
+```
 
 ## Create own Docker image based on CentOS or openSUSE that includes Apache web server and custom index page with some text (for example your SoftUni username) and a picture (of a cat, a dog, or whatever you like)
 
