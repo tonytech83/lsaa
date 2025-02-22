@@ -276,35 +276,46 @@ sudo pcs resource move web-application fo-node-2.homework.lab
 # check is mounted
 df -hT
 ```
-## Setup Nginx on both nodes
-1. Install nginx package
+## Setup Apache on both nodes
+1. Install Apache package
 ```sh
-sudo dnf install -y nginx
+sudo dnf install httpd
 ```
-2. Create Nginx configuration file `/etc/nginx/conf.d/web-app.conf`
-```conf
-server {
-    listen 80;
-    server_name _;
-    root /var/www/html;
-    index index.html;
-    
-    location / {
-        try_files \$uri \$uri/ =404;
-    }
-}
-```
-3. Restart and enable Nginx service
+2. Configure SELinux and permissions
 ```sh
-sudo systemctl restart nginx
-sudo systemctl enable nginx
+# SELinux
+sudo restorecon -Rv /var/www/html
+sudo chcon -R -t httpd_sys_content_t /var/www/html
+
+# permissions
+sudo chmod -R 755 /var/www/html
+sudo chown -R apache:apache /var/www/html
 ```
-4. Create custom webpage (this should be done on active node, where /var/www/html is mounted)
-```sh
-echo "<h1>Hello from the Clustered Nginx!</h1> <p>You was served by $(hostname)</p>" | sudo tee /var/www/html/index.html
-```
-5. Setup firewall
+3. Setup firewall
 ```sh
 sudo firewall-cmd --add-service http --permanent
 sudo firewall-cmd --reload
 ```
+4. Add Apache to Pacemaker
+```sh
+sudo pcs resource create apache_service ocf:heartbeat:apache \
+    configfile="/etc/httpd/conf/httpd.conf" \
+    statusurl="http://127.0.0.1/server-status" \
+    op monitor interval=10 timeout=30 \
+    --group web-application
+```
+5. Test the Apache
+```sh
+curl http://192.168.99.200
+<h1>Hello from the Clustered Nginx\!</h1><p>You were served by fo-node-1.homework.lab</p>
+```
+6. Test failover
+```sh
+sudo pcs resource move web-application fo-node-2.homework.lab
+
+curl http://192.168.99.200
+<h1>Hello from the Clustered Nginx\!</h1><p>You were served by fo-node-1.homework.lab</p>
+```
+7. Test from host
+
+![failover](../media/alma.png)
