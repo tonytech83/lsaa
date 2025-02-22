@@ -1,0 +1,77 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+echo '127.0.0.1       localhost' > /etc/hosts
+echo '' >> /etc/hosts
+echo 'ff02::1 ip6-allnodes' >> /etc/hosts
+echo 'ff02::2 ip6-allrouters' >> /etc/hosts
+echo '' >> /etc/hosts
+echo '192.168.99.101 fo-node-1.homework.lab fo-node-1' >> /etc/hosts
+echo '192.168.99.102 fo-node-2.homework.lab fo-node-2' >> /etc/hosts
+echo '192.168.99.103 iscsi-srv.homewotk.lab iscsi-srv' >> /etc/hosts
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/debian-12-9"
+    config.vm.box_version = "1.0.0"
+
+    # Failover node 1
+    config.vm.define "fo-node-1" do |node1|
+        node1.vm.hostname = "fo-node-1.homework.lab"
+        node1.vm.network "private_network", ip: "192.168.99.101"
+        node1.vm.provision "shell", inline: $dns
+        node1.vm.provision "shell", inline: $common
+        node1.vm.provider "virtualbox" do |vb|
+            vb.memory = 2048
+            vb.cpus = 1
+        end
+    end
+
+    # Failover node 2
+    config.vm.define "fo-node-2" do |node2|
+        node2.vm.hostname = "fo-node-2.homework.lab"
+        node2.vm.network "private_network", ip: "192.168.99.102"
+        node2.vm.provision "shell", inline: $dns
+        node2.vm.provision "shell", inline: $common
+        node2.vm.provider "virtualbox" do |vb|
+            vb.memory = 2048
+            vb.cpus = 1
+        end
+    end
+
+    # iSCSI target server
+    config.vm.define "iscsi-srv" do |srv|
+        srv.vm.hostname = "iscsi-srv.homework.lab"
+        srv.vm.network "private_network", ip: "192.168.99.103"
+        srv.vm.provision "shell", inline: $dns
+        srv.vm.provision "shell", inline: $common
+        srv.vm.disk :disk, size: "5GB", name: "srv-disk"
+        srv.vm.provider "virtualbox" do |vb|
+            vb.memory = 2048
+            vb.cpus = 1
+        end
+    end
+
+end
+
