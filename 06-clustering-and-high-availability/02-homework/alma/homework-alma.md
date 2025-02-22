@@ -24,29 +24,15 @@ sr0                      11:0    1 1024M  0 rom
 ```sh
 sudo dnf install targetcli
 ```
-2. Setup LVM
-```sh
-# create LVM on the sdb
-sudo pvcreate /dev/sdb
-
-# create a Volume group - iscsi_vg
-sudo vgcreate iscsi_vg /dev/sdb
-
-# create a Logical volume  - web_lv
-sudo lvcreate -L 4.9G -n web_lv iscsi_vg
-
-# format the Logical volume
-sudo mkfs.xfs /dev/iscsi_vg/web_lv
-```
-3. Present LVM through iSCSI using Target administration tool
+2. Present LVM through iSCSI using Target administration tool
 ```sh
 sudo targetcli
 ```
-4. Create block device
+3. Create block device
 ```sh
-/backstores/block create name=iscsi_store dev=/dev/iscsi_vg/web_lv
+/backstores/block create name=iscsi_store dev=/dev/sdb
 ```
-5. Create target IQN (define new Target)
+4. Create target IQN (define new Target)
 ```sh
 /iscsi create iqn.2025-02.lab.homework:iscsi-srv:target
 ```
@@ -80,7 +66,7 @@ sudo targetcli ls
 o- / ......................................................................................................................... [...]
   o- backstores .............................................................................................................. [...]
   | o- block .................................................................................................. [Storage Objects: 1]
-  | | o- iscsi_store .......................................................... [/dev/iscsi_vg/web_lv (4.9GiB) write-thru activated]
+  | | o- iscsi_store ...................................................................... [/dev/sdb (5.0GiB) write-thru activated]
   | |   o- alua ................................................................................................... [ALUA Groups: 1]
   | |     o- default_tg_pt_gp ....................................................................... [ALUA state: Active/optimized]
   | o- fileio ................................................................................................. [Storage Objects: 0]
@@ -95,7 +81,7 @@ o- / ...........................................................................
   |     | o- iqn.2025-02.lab.homework.fo-node-2.init .................................................. [1-way auth, Mapped LUNs: 1]
   |     |   o- mapped_lun0 ........................................................................... [lun0 block/iscsi_store (rw)]
   |     o- luns .......................................................................................................... [LUNs: 1]
-  |     | o- lun0 .................................................... [block/iscsi_store (/dev/iscsi_vg/web_lv) (default_tg_pt_gp)]
+  |     | o- lun0 ................................................................ [block/iscsi_store (/dev/sdb) (default_tg_pt_gp)]
   |     o- portals .................................................................................................... [Portals: 1]
   |       o- 0.0.0.0:3260 ..................................................................................................... [OK]
   o- loopback ......................................................................................................... [Targets: 0]
