@@ -1,8 +1,28 @@
-# Tasks
+# Homework M6: Clustering and High Availability
+
+Main goal is to build further on what was demonstrated during the practice
+
+## Tasks
+
 Implement the following:
 
 - Research and implement two node failover cluster that hosts a web site served by LVM volume group managed by the cluster. The volume group must reside on a separate iSCSI target server
-# Solution
+
+## Proof
+
+Prepare a document that shows what you accomplished and how you did it. It can include (not limited to):
+
+- The commands you used to achieve the above tasks
+
+- A few pictures showing intermediary steps or results
+
+## Solutions
+
+alma/homework-alma.md
+debian/homework-debian.md
+suse/homework-suse.md
+
+## Debian solution
 
 ### Diagram
 ```
@@ -341,7 +361,7 @@ Daemon Status:
 
 6.  Open webpage from outside
 
-![debian-1](../media/debian-1.png)
+![debian-1](media/debian-1.png)
 
 ### Step 6. Test failover.
 
@@ -381,4 +401,4 @@ Daemon Status:
 
 3. Open webpage from outside. Our web server should be served by second node.
 
-![debian-2](../media/debian-2.png)
+![debian-2](media/debian-2.png)
