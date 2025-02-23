@@ -16,12 +16,13 @@ Implement the following:
 |  nginx                |   |     nginx             |   |     targetcli-fb      |
 |  pacemaker            |   |     pacemaker         |   |                       |
 |  pcs                  |   |     pcs               |   |                       |
-|                       |   |                       |   |                       |
-|                       |   |                       |   |                       |
+|  open-iscsi           |   |     open-iscsi        |   |                       |
+|  lvm2                 |   |     lvm2              |   |                       |
 |                       |   |                       |   |                       |
 +-----------------------+   +-----------+-----------+   +-----------------------+
 ```
 
+### Steps
 ```
 Step 1 - Setup iSCSI Target server.
 Step 2 - Discover and log in to the iSCSI target on nodes.
