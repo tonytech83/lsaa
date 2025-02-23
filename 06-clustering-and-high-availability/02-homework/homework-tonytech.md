@@ -18,9 +18,9 @@ Prepare a document that shows what you accomplished and how you did it. It can i
 
 ## Solutions
 
-alma/homework-alma.md
+alma/homework-alma.md (partially)
 debian/homework-debian.md
-suse/homework-suse.md
+suse/homework-suse.md (failed failover test)
 
 ## Debian solution
 
