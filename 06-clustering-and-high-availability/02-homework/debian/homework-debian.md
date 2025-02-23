@@ -3,7 +3,35 @@ Implement the following:
 
 - Research and implement two node failover cluster that hosts a web site served by LVM volume group managed by the cluster. The volume group must reside on a separate iSCSI target server
 # Solution
-### Setup iSCSI Target server
+
+### Diagram
+```
+
+------------+---------------------------+---------------------------+------------
+            |                           |                           |
+      enp0s8|192.168.99.101       enp0s8|192.168.99.102       enp0s8|192.168.99.103
++-----------+-----------+   +-----------+-----------+   +-----------+-----------+
+|    [ fo-node-1 ]      |   |    [ fo-node-2 ]      |   |    [ iscsi-srv ]      |
+|                       |   |                       |   |                       |
+|  nginx                |   |     nginx             |   |     targetcli-fb      |
+|  pacemaker            |   |     pacemaker         |   |                       |
+|  pcs                  |   |     pcs               |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
++-----------------------+   +-----------+-----------+   +-----------------------+
+```
+
+```
+Step 1 - Setup iSCSI Target server.
+Step 2 - Discover and log in to the iSCSI target on nodes.
+Step 3 - Set up Pacemaker & Corosync for failover on nodes.
+Step 4 - Create a Cluster Resource for LVM & Filesystem management.
+Step 5 - Install Nginx and setup Cluster resource for it.
+Step 6 - Test failover.
+```
+
+### Step 1. Setup iSCSI Target server
 ```sh
 lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
@@ -87,7 +115,8 @@ o- / ...........................................................................
 sudo systemctl restart rtslib-fb-targetctl
 sudo systemctl enable rtslib-fb-targetctl
 ```
-### Discover and log in to the iSCSI target on `fo-node-1` and `fo-node-2`. Steps are similar for both nodes.
+### Step 2. Discover and log in to the iSCSI target on `fo-node-1` and `fo-node-2`. Steps are similar for both nodes.
+
 1. Install the iSCSI initiator package
 ```sh
 sudo apt update && sudo apt install -y open-iscsi
@@ -125,7 +154,7 @@ sudo iscsiadm -m node --login
 sudo iscsiadm -m session -o show
 ```
 
-### Set up Pacemaker & Corosync for failover on both `fo-node-1` and `fo-node-2.`
+### Step 3. Set up Pacemaker & Corosync for failover on both `fo-node-1` and `fo-node-2.`
 
 1. Install Hing Availability packages
 ```sh
@@ -161,7 +190,7 @@ sudo pcs cluster status
 sudo pcs property set stonith-enabled=false
 ```
 
-### Create a Cluster Resource for LVM & Filesystem management.
+### Step 4. Create a Cluster Resource for LVM & Filesystem management.
 
 1. Create a virtual IP address for the cluster
 ```sh
@@ -184,60 +213,58 @@ sudo pcs resource create iscsi_initiator ocf:heartbeat:iscsi \
 ```sh
 sudo apt install -y lvm2
 ```
-1. Modify LVM configuration `/etc/lvm/lvm.conf`. Ensures LVM is correctly handled in a clustered environment and avoids conflicts when both fo-node-1 and fo-node-2 access the same LVM resources (on both nodes)
+4. Modify LVM configuration `/etc/lvm/lvm.conf`. Ensures LVM is correctly handled in a clustered environment and avoids conflicts when both fo-node-1 and fo-node-2 access the same LVM resources (on both nodes)
 ```sh
 system_id_source = "uname" # uncomment and set to "uname"
 ```
-
-### Creating the volume group `iscsi_vg` on `fo-node-1.homework.lab`
-1. Create partition on `/dev/sdb`
+5. Create partition on `/dev/sdb`
 ```sh
 sudo parted -s /dev/sdb -- mklabel msdos mkpart primary 16384s -0m set 1 lvm on
 ```
-2. Create a physical volume.
+6. Create a physical volume.
 ```sh
 sudo pvcreate /dev/sdb1
 ```
-3. Create the Volume group `iscsi_vg`
+7. Create the Volume group `iscsi_vg`
 ```sh
 sudo vgcreate iscsi_vg /dev/sdb1
 ```
-4. Check if the system ID is correctly applied
+8. Check if the system ID is correctly applied
 ```sh
 sudo vgs -o+systemid
 ```
-5. Create logical volume `web_lv`
+9. Create logical volume `web_lv`
 ```sh
 sudo lvcreate -l 100%FREE -n web_lv iscsi_vg
 ```
-6. Check the result with command
+10. Check the result with command
 ```sh
 sudo lvs
 ```
-7. Create filesystem
+11. Create filesystem
 ```sh
 sudo mkfs.ext4 /dev/iscsi_vg/web_lv
 ```
-8. Turn off automounting. Make sure Pacemaker manage volume groups instead system. Open and modify `/etc/lvm/lvm.conf`
+12. Turn off automounting. Make sure Pacemaker manage volume groups instead system. Open and modify `/etc/lvm/lvm.conf`
 ```sh
 # Unmount and add only system volume groups, exclude that we should create
 auto_activation_volume_list = []
 ```
-9. Check the configuration
+13. Check the configuration
 ```sh
 sudo lvm lvmconfig
 ```
-10. Rebuild the initramfs by executing
+14.  Rebuild the initramfs by executing
 ```sh
 sudo update-initramfs -u
 ```
-11. Reboot both nodes
+15.  Reboot both nodes
 
-12. Create mounting point on both nodes
+16.  Create mounting point on both nodes
 ```sh
 sudo mkdir -p /var/www/html
 ```
-13. Create iSCSI volume group resource
+17.  Create iSCSI volume group resource
 ```sh
 sudo pcs resource create lvm_ha ocf:heartbeat:LVM-activate \
     vgname=iscsi_vg \
@@ -246,7 +273,7 @@ sudo pcs resource create lvm_ha ocf:heartbeat:LVM-activate \
 ```
 - `vgname=iscsi_vg` → Specifies the Volume Group to activate.
 - `vg_access_mode=system_id` → Ensures LVM only activates on one node (as we already configured system_id_source in lvm.conf).
-14. Add Filesystem resource
+18.  Add Filesystem resource
 ```sh
 sudo pcs resource create lvm_fs ocf:heartbeat:Filesystem \
     device="/dev/iscsi_vg/web_lv" \
@@ -257,30 +284,32 @@ sudo pcs resource create lvm_fs ocf:heartbeat:Filesystem \
 - `device="/dev/iscsi_vg/web_lv"` → The Logical Volume to mount.
 - `directory="/var/www/html"` → The mount point for the website.
 - `fstype="ext4"` → The filesystem type (you formatted it as XFS).
-15. Check resources status
+19.  Check resources status
 ```sh
 sudo pcs resource status
 ```
-16. Install Nginx on both nodes
+### Step 5. Install Nginx and setup Cluster resource for it
+
+1.  Install Nginx on both nodes
 ```sh
 sudo apt update && sudo apt install nginx -y
 ```
-17. Set folder permissions on both nodes
+2.  Set folder permissions on both nodes
 ```sh
 sudo chmod -R 755 /var/www/html
 ```
-18. Crete index.html on both nodes
+3.  Crete index.html on both nodes
 ```sh
 sudo echo "<h1>Hello from the Clustered Nginx</h1><p>You was served by $(hostname)</p><p>$(uname -a)</p>" | sudo tee /var/www/html/index.html
 ```
-19. Add Nginx resource
+4.  Add Nginx resource
 ```sh
 sudo pcs resource create nginx_service ocf:heartbeat:nginx \
     configfile="/etc/nginx/nginx.conf" \
     op monitor timeout="5s" interval="5s" \
     --group web-application
 ```
-20. Status of cluster
+5.  Status of cluster
 ```sh
 Cluster name: cluster-1
 Status of pacemakerd: 'Pacemaker is running' (last updated 2025-02-23 10:25:10 +02:00)
@@ -309,15 +338,17 @@ Daemon Status:
   pcsd: active/enabled
 ```
 
-21.  Test outside
+6.  Open webpage from outside
 
 ![debian-1](../media/debian-1.png)
 
-22. Test failover
+### Step 6. Test failover.
+
+1. Put `fo-node-1.homework.lab` in standby mode
 ```sh
 sudo pcs node standby fo-node-1.homework.lab
-``
-23. Check cluster status form `fo-node-1.homework.lab`
+```
+2. Check cluster status form `fo-node-1.homework.lab`
 ```sh
 Cluster name: cluster-1
 Status of pacemakerd: 'Pacemaker is running' (last updated 2025-02-23 10:32:35 +02:00)
@@ -347,6 +378,6 @@ Daemon Status:
   pcsd: active/enabled
 ```
 
-23. Test outside
+3. Open webpage from outside. Our web server should be served by second node.
 
 ![debian-2](../media/debian-2.png)
