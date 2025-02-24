@@ -13,8 +13,11 @@ The main goal of this course is to provide sufficient comfort in working with Li
 
 ## Table of Contents:
 - [`Local Storage and Additional Techniques`](https://github.com/tonytech83/lsaa/tree/main/01-local-storage-and-additional-techniques)
-- [`System and Network Security`](https://github.com/tonytech83/lsaa/tree/main/02-system-and-network-security/02-homework)
-- [`Shared and Distributed Storage`](https://github.com/tonytech83/lsaa/tree/main/03-shared-and-distributed-storage/02-homework)
+- [`System and Network Security`](https://github.com/tonytech83/lsaa/tree/main/02-system-and-network-security)
+- [`Shared and Distributed Storage`](https://github.com/tonytech83/lsaa/tree/main/03-shared-and-distributed-storage)
+- [`Network Services`](https://github.com/tonytech83/lsaa/tree/main/04-network-services)
+- [`Virtualization and Containerization`](https://github.com/tonytech83/lsaa/tree/main/05-virtualization-and-containerization)
+- [`Clustering and High Availability`](https://github.com/tonytech83/lsaa/tree/main/06-clustering-and-high-availability)
 
 <br/>
 <br/>
