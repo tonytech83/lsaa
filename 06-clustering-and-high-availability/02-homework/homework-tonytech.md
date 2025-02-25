@@ -20,7 +20,7 @@ Prepare a document that shows what you accomplished and how you did it. It can i
 
 alma/homework-alma.md
 debian/homework-debian.md
-suse/homework-suse.md (failed failover test)
+suse/homework-suse.md (failed on ocf:heartbeat:LVM-activate failover test)
 
 ## Debian solution
 

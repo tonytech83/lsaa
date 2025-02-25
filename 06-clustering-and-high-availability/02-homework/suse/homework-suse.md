@@ -3,6 +3,27 @@ Implement the following:
 
 - Research and implement two node failover cluster that hosts a web site served by LVM volume group managed by the cluster. The volume group must reside on a separate iSCSI target server
 ## Solution
+
+### Diagram
+```
+
+------------+---------------------------+---------------------------+------------
+            |                           |                           |
+      enp0s8|192.168.99.101       enp0s8|192.168.99.102       enp0s8|192.168.99.103
++-----------+-----------+   +-----------+-----------+   +-----------+-----------+
+|    [ fo-node-1 ]      |   |    [ fo-node-2 ]      |   |    [ iscsi-srv ]      |
+|                       |   |                       |   |                       |
+|  nginx                |   | nginx                 |   |     targetcli-fb      |
+|  ha-cluster-bootstrap |   | ha-cluster-bootstrap  |   |                       |
+|  lvm2                 |   | lvm2                  |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
++-----------------------+   +-----------+-----------+   +-----------------------+
+```
+
+### Steps
+
 ```plain
 Step 1 - Setup iSCSI Target server.
 Step 2 - Initiator setup. Discover and log in to the iSCSI target.
@@ -140,13 +161,13 @@ Working on `fo-node-1.homework.lab`
 - Reboot the virtual machine.
 - Start the cluster creation procedure
   ```sh
-  sudo ha-cluster-init
+  sudo crm cluster init
   ```
-  - On the first question answer with **Y**
-  - Confirm the proposed network settings
-  - On the question about the **SBD** answer with **N**
-  - On the question about the **Virtual IP (admin)** answer with **Y**. Enter the address you want (for example, **192.168.99.200**)
-  - On the question about the **QDevice** answer with **N**
+  - The user 'hacluster' will have the login shell configuration changed to /bin/bash - **Y**
+  - Configure **Corosync** (unicast): 192.168.99.101
+  - Do you wish to use **SBD** (disable **STONITH**) - **N**
+  - Do you wish to configure a **virtual IP address** - **Y**. Enter the address you want (for example, **192.168.99.200**)
+  - Do you want to configure **QDevice** - **N**
 - Check cluster status
   ```sh
   sudo crm status
@@ -161,28 +182,13 @@ Working on `fo-node-2.homework.lab`
   ```sh
   sudo zypper install ha-cluster-bootstrap
   ```
-- Stop the cluster service on `fo-node-1`
-  ```sh
-  sudo crm cluster stop
-  ```
-- Edit `/etc/corosync/corosync.conf` on `fo-node-1` to use the correct IP. Replace VirtualBox IP address with private one.
-  ```plain
-  nodelist {
-          node {
-                  ring0_addr: 192.168.99.101
-                  nodeid: 1
-          }
-  }
-  ```
-- Start the cluster on `fo-node-1`
-- Reboot virtual machine
 - Join `fo-node-2.homework.lab` to the cluster
   ```sh
   sudo crm cluster join -c fo-node-1.homework.lab
   ```
-  - Enter the **root** password
-  - On the first question answer with **Y**
-  - Set the local ip address **192.168.99.102**
+  - Enter the **root** password of `fo-node-1.homework.lab`
+  - The user 'hacluster' will have the login shell configuration changed to /bin/bash - **Y**
+  - Set the local ip address - **192.168.99.102**
 - Check the cluster status after join of `fo-node-1`
   ```
   sudo crm status
@@ -200,51 +206,36 @@ Working on `fo-node-2.homework.lab`
   Full List of Resources:
     * admin-ip    (ocf::heartbeat:IPaddr2):        Started fo-node-1
   ```
-- Test moving admin-ip resource to the other node
+- Create group `web-app` and add `admin-ip` resource to it. This group will contain all resources.
   ```sh
-  sudo crm resource move admin-ip fo-node-2
+  sudo crm configure group web-app admin-ip
   ```
+- Test moving `web-app` group to the other node.
+  ```sh
+  sudo crm resource move web-app fo-node-2
+  ```
+- Log in to the web administrative console of the cluster. Can be used **virtual-admin-ip-address** set on HA setup. Default credentials are user **hacluster** and password **linux**.
+
+  ![ha-web-console](../media/suse-ha-web-console.png)
 
 ### Step 4. Create a Cluster Resource for LVM & Filesystem management.
 - Create the virtual IP address for the cluster
   ```sh
-  sudo crm configure primitive cluster-virt-ip ocf:heartbeat:IPaddr2 ip=192.168.99.201 cidr_netmask=24 op monitor interval=30s --group web-application
+  sudo crm configure primitive p_IPaddr2 ocf:heartbeat:IPaddr2 \
+    params \
+      ip=192.168.99.201 \
+      cidr_netmask=24 \
+    op monitor interval=30s \
   ```
 - Create iSCSI initiator resource
   ```sh
-  sudo crm configure primitive iscsi_initiator ocf:heartbeat:iscsi params portal="192.168.99.103:3260" target="iqn.2025-02.lab.homework:iscsi-srv.target" op monitor interval="20s" timeout="40s" op start interval="0" timeout="120s" op stop interval="0" timeout="120s" --group web-application
-  ```
-- Check cluster configuration with `sudo crm configure show`
-  ```sh
-  node 1: fo-node-1
-  node 2: fo-node-2
-  primitive admin-ip IPaddr2 \
-          params ip=192.168.99.200 \
-          op monitor interval=10 timeout=20
-  primitive cluster-virt-ip IPaddr2 \
-          params ip=192.168.99.201 cidr_netmask=24 \
-          op monitor interval=30s \
-          op_params --group web-application
-  primitive iscsi_initiator iscsi \
-          params portal="192.168.99.103:3260" target="iqn.2025-02.lab.homework:iscsi-srv.target" \
-          op monitor interval=20s timeout=40s \
-          op start interval=0s timeout=120s \
-          op stop interval=0s timeout=120s \
-          op_params --group web-application
-  location cli-prefer-admin-ip admin-ip role=Started inf: fo-node-2
-  property cib-bootstrap-options: \
-          have-watchdog=false \
-          dc-version="2.1.7+20231219.0f7f88312-150600.6.6.1-2.1.7+20231219.0f7f88312" \
-          cluster-infrastructure=corosync \
-          cluster-name=hacluster \
-          stonith-enabled=false
-  rsc_defaults build-resource-defaults: \
-          resource-stickiness=1 \
-          migration-threshold=3 \
-          priority=1
-  op_defaults op-options: \
-          timeout=600 \
-          record-pending=true
+  sudo crm configure primitive p_iscsi ocf:heartbeat:iscsi \
+    params \
+      portal="192.168.99.103:3260" \
+      target="iqn.2025-02.lab.homework:iscsi-srv.target" \
+    op monitor interval="20s" timeout="40s" \
+    op start interval="0" timeout="120s" \
+    op stop interval="0" timeout="120s"
   ```
 - Test failover
   ```sh
@@ -255,8 +246,8 @@ Working on `fo-node-2.homework.lab`
   Cluster Summary:
     * Stack: corosync (Pacemaker is running)
     * Current DC: fo-node-1 (version 2.1.7+20231219.0f7f88312-150600.6.6.1-2.1.7+20231219.0f7f88312) - partition with quorum
-    * Last updated: Sun Feb 23 14:40:45 2025 on fo-node-1
-    * Last change:  Sun Feb 23 14:40:31 2025 by root via root on fo-node-1
+    * Last updated: Tue Feb 25 09:28:17 2025 on fo-node-1
+    * Last change:  Tue Feb 25 09:28:14 2025 by root via root on fo-node-1
     * 2 nodes configured
     * 3 resource instances configured
 
@@ -265,59 +256,58 @@ Working on `fo-node-2.homework.lab`
     * Online: [ fo-node-2 ]
 
   Full List of Resources:
-    * admin-ip    (ocf::heartbeat:IPaddr2):        Started fo-node-2
-    * cluster-virt-ip     (ocf::heartbeat:IPaddr2):        Started fo-node-2
-    * iscsi_initiator     (ocf::heartbeat:iscsi):  Started fo-node-2
+    * Resource Group: web-app:
+      * admin-ip  (ocf::heartbeat:IPaddr2):        Started fo-node-2
+      * p_IPaddr2 (ocf::heartbeat:IPaddr2):        Started fo-node-2
+      * p_iscsi   (ocf::heartbeat:iscsi):  Started fo-node-2
   ```
 - Install the LVM packages on both nodes in needed
   ```sh
   sudo zypper install lvm2
   ```
-- Edit LVM configuration, open the file `/etc/lvm/lvm.conf`
+- Edit LVM configuration, open the file `/etc/lvm/lvm.conf` on both nodes
   ```sh
   system_id_source = "uname" # uncomment and set to "uname"
   ```
-- Check if shell commands `sudo lvm systemid` and `uname -n` returned same node name.
+- Check if shell commands `sudo lvm systemid` and `uname -n` returned same node name on both nodes
 - Bring back online `fo-node-1`
   ```sh
   sudo crm node online fo-node-1
   ```
-- Move all resources to `fo-node-1`
+- Move all resources to `fo-node-1` using group `web-app`
   ```sh
-  sudo crm resource move admin-ip fo-node-1
-  sudo crm resource move cluster-virt-ip fo-node-1
-  sudo crm resource move iscsi_initiator fo-node-1
+  sudo crm resource move web-app fo-node-1
   ```
-- Create partition on `/dev/sdb`
+- Create partition on `/dev/sdb` on `fo-node-1`
   ```sh
   sudo parted -s /dev/sdb -- mklabel msdos mkpart primary 16384s -0m set 1 lvm on
   ```
-- Initialize it as physical volume
+- Initialize it as physical volume on `fo-node-1`
   ```sh
   sudo pvcreate /dev/sdb1
   ```
-- Create a volume group
+- Create a volume group on `fo-node-1`
   ```sh
-  sudo vgcreate iscsi_vg /dev/sdb1
+  sudo vgcreate iscsi_vg /dev/sdb1 
   ```
-- Check if the system ID is correctly applied
+- Check if the system ID is correctly applied on `fo-node-1`
   ```sh
   sudo vgs -o+systemid
   ```
-- Create a logical volume
+- Create a logical volume on `fo-node-1`
   ```sh
   sudo lvcreate -l 100%FREE -n web_lv iscsi_vg
   ```
-- Create a filesystem
+- Create a filesystem on `fo-node-1`
   ```sh
   sudo mkfs.ext4 /dev/iscsi_vg/web_lv
   ```
-- Turn off automounting. Make sure Pacemaker manage volume groups instead system. Open and modify `/etc/lvm/lvm.conf`
-```sh
-# check for volume groups with `sudo vgs --noheadings -o vg_name`
-# uncomment and add only system volume groups, exclude that we should create
-auto_activation_volume_list = []
-```
+- Turn off automounting. Make sure Pacemaker manage volume groups instead system. Open and modify `/etc/lvm/lvm.conf` on both nodes.
+  ```sh
+  # check for volume groups with `sudo vgs --noheadings -o vg_name`
+  # uncomment and add only system volume groups, exclude that we should create
+  auto_activation_volume_list = []
+  ```
 - Rebuild the **initrd** by executing
   ```sh
   sudo dracut -H -f /boot/initrd-$(uname -r) $(uname -r)
@@ -327,19 +317,16 @@ auto_activation_volume_list = []
   ```sh
   sudo mkdir -p /var/www/cluster
   ```
-- Create iSCSI volume group resource
+- Create iSCSI volume group resource.
   ```sh
-  sudo crm configure primitive lvm_ha ocf:heartbeat:LVM-activate vgname="iscsi_vg" vg_access_mode=system_id op monitor interval="30s" --group web-application
+  sudo crm configure primitive p_LVM-activate ocf:heartbeat:LVM-activate \
+    params \
+      vgname="iscsi_vg" \
+      lvname="web_lv" \
+      vg_access_mode="system_id" \
   ```
 - Create Filesystem resource
   ```sh
   sudo crm configure primitive lvm_fs ocf:heartbeat:Filesystem params device="/dev/iscsi_vg/web_lv" directory="/var/www/cluster"  fstype="ext4" op monitor interval="20s" --group web-application
   ```
-- Unset the system ID so that the VG (iscsi_vg) is accessible on both nodes. Execute on node where volume group is in use.
-  ```sh
-  sudo vgchange --systemid "" iscsi_vg
-  ```
-- Test failover
-  ```sh
-  sudo crm node standby fo-node-1
-  ```
+

@@ -18,8 +18,8 @@ Implement the following:
 | iscsi-initiator-utils |   | iscsi-initiator-utils |   |     targetcli         |
 | pacemaker             |   | pacemaker             |   |                       |
 | pcs                   |   | pcs                   |   |                       |
-|  open-iscsi           |   |     open-iscsi        |   |                       |
-|  lvm2                 |   |     lvm2              |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 +-----------------------+   +-----------------------+   +-----------------------+
 ```
