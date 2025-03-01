@@ -361,6 +361,7 @@ sr0                      11:0    1 1024M  0 rom
     pcsd: active/enabled
     ```
 - Open webpage from outside
+
     ![alma-1](../media/alma-1.png)
 
 Step 6 - Test failover.
