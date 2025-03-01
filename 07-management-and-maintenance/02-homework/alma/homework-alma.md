@@ -235,3 +235,148 @@ Step 6 - Create configuration for Host Group.
   
   ![alma-5](../media/alma-5.png)
   
+## Task 2
+
+### Diagram
+```
+------------+---------------------------+---------------------------+------------
+            |                           |                           |
+      enp0s8|10.10.10.101         enp0s8|10.10.10.102         enp0s8|10.10.10.103
++-----------+-----------+   +-----------+-----------+   +-----------+-----------+
+|    [ ansible-alma ]   |   |     [ web-centos ]    |   |     [ web-debian ]    |
+|                       |   |                       |   |                       |
+| nagios                |   | httpd                 |   | apache2               |
+| nagios-common         |   |                       |   | ufw                   |
+| nagios-selinux        |   |                       |   |                       |
+| nagios-plugins-all    |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
++-----------------------+   +-----------------------+   +-----------------------+
+```
+
+### Steps
+```plain
+Step 1 - Setup ansible on ansible-alma.homework.lab
+Step 2 - Create playbook.yaml
+```
+
+### Step 1 - Setup ansible on ansible-alma.homework.lab
+- Install the **EPEL** repository
+  ```sh
+  sudo dnf install epel-release
+  ```
+- Install the **Ansible** package
+  ```sh
+  sudo dnf install ansible
+  ```
+- Generate key pair for ansible connection to clients
+  ```sh
+  ssh-keygen -t ed25519 -C "ansible"
+  ```
+- Send ssh key to target machines
+  ```sh
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-centos.homework.lab
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-debian.homework.lab
+  ```
+- Create `inventory.ini` file to store target machines.
+  ```ini
+  [webservers]
+  web-centos.homework.lab
+  web-debian.homework.lab
+
+  [centos]
+  web-centos.homework.lab
+
+  [debian]
+  web-debian.homework.lab
+
+  [all:vars]
+  ansible_user=vagrant
+  ansible_ssh_private_key_file=~/.ssh/ansible
+  ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+  ```
+- Test connection to targets
+  ```sh
+  ansible -i inventory.ini all -m ping
+  ```
+
+### Step 2 - Create playbook.yaml
+- Create `index.html` file
+  ```sh
+  echo "<h1>Running on {{ ansible_distribution }}</h1>" | tee index.html
+  ```
+- Create `playbook.yaml`
+  ```yaml
+  ---
+  - hosts: centos
+    become: true
+
+    tasks:
+      - name: Install Apache server
+        dnf:
+          name: httpd
+          state: present
+
+      - name: Ensure Apache is started and enabled at boot
+        service:
+          name: httpd
+          state: started
+          enabled: true
+
+      - name: Copy webpage
+        template:
+          src: index.html.j2
+          dest: /var/www/html/index.html
+
+      - name: Allow Apache service in firewall
+        firewalld:
+          service: http
+          state: enable
+          permanent: true
+          immediate: true
+   
+  - hosts: debian
+    become: true
+
+    tasks:
+      - name: Install Apache server
+        apt:
+          name: apache2
+          state: present
+
+      - name: Ensure Apache is started and enabled at boot
+        service:
+          name: apache2
+          state: started
+          enabled: true
+
+      - name: Copy webpage
+        template:
+          src: index.html.j2
+          dest: /var/www/html/index.html
+
+      - name: Ensure UFW is enabled
+        community.general.ufw:
+          state: enabled
+
+      - name: Allow Apache service in firewall
+        community.general.ufw:
+          rule: allow
+          port: '80'
+          proto: tcp
+  ``` 
+- Check syntax errors
+  ```sh
+  ansible-playbook -i inventory.ini playbook.yaml --syntax-check
+  ```
+- Execute Ansible playbook
+  ```sh
+  ansible-playbook -i inventory.ini playbook.yaml
+  ```
+- CentOS web greeting
+  
+  ![alma-6](../media/alma-6.png)
+
+- Debian web greeting
+
+  ![alma-7](../media/alma-7.png)
