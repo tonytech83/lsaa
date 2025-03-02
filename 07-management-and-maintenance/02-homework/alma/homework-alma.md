@@ -301,9 +301,13 @@ Step 2 - Create playbook.yaml
   ```
 
 ### Step 2 - Create playbook.yaml
-- Create `index.html` file
+- Crete templates folder
   ```sh
-  echo "<h1>Running on {{ ansible_distribution }}</h1>" | tee index.html
+  sudo mkdir templates
+  ```
+- Create `index.html.j2` file
+  ```sh
+  echo "<h1>Running on {{ ansible_distribution }}</h1>" | tee templates/index.html.j2
   ```
 - Create `playbook.yaml`
   ```yaml
