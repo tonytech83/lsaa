@@ -245,10 +245,10 @@ Step 6 - Create configuration for Host Group.
 +-----------+-----------+   +-----------+-----------+   +-----------+-----------+
 |    [ ansible-alma ]   |   |     [ web-centos ]    |   |     [ web-debian ]    |
 |                       |   |                       |   |                       |
-| nagios                |   | httpd                 |   | apache2               |
-| nagios-common         |   |                       |   | ufw                   |
-| nagios-selinux        |   |                       |   |                       |
-| nagios-plugins-all    |   |                       |   |                       |
+| ansible               |   | httpd                 |   | apache2               |
+|                       |   |                       |   | ufw                   |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 +-----------------------+   +-----------------------+   +-----------------------+
@@ -335,7 +335,7 @@ Step 2 - Create playbook.yaml
       - name: Allow Apache service in firewall
         firewalld:
           service: http
-          state: enable
+          state: enabled
           permanent: true
           immediate: true
    

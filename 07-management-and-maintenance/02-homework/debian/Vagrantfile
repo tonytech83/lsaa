@@ -13,9 +13,9 @@ echo '' >> /etc/hosts
 echo 'ff02::1 ip6-allnodes' >> /etc/hosts
 echo 'ff02::2 ip6-allrouters' >> /etc/hosts
 echo '' >> /etc/hosts
-echo '10.10.10.101 debian-1.homework.lab debian-1' >> /etc/hosts
-echo '10.10.10.102 debian-2.homework.lab debian-2' >> /etc/hosts
-echo '10.10.10.103 debian-3.homework.lab debian-3' >> /etc/hosts
+echo '10.10.10.101 ansible-debian.homework.lab ansible-debian' >> /etc/hosts
+echo '10.10.10.102 web-suse.homework.lab web-suse' >> /etc/hosts
+echo '10.10.10.103 web-alma.homework.lab web-alma' >> /etc/hosts
 
 SCRIPT
 
@@ -33,21 +33,48 @@ SCRIPT
 
 
 Vagrant.configure("2") do |config|
-    config.vm.box = "tonytech/debian-12-9"
-    config.vm.box_version = "1.0.0"
+  
+  # Define Debian Ansible server
+  config.vm.define "ansible-debian" do |ansible|
+    ansible.vm.box = "tonytech/debian-12-9"
+    ansible.vm.box_version = "1.0.0"
+    ansible.vm.hostname = "ansible-debian.homework.lab"
+    ansible.vm.network :private_network, ip: "10.10.10.101"
+    ansible.vm.provision "shell", inline: $common
+    ansible.vm.provision "shell", inline: $dns
+    ansible.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 1
+    end
+  end
 
-    1.upto(3) do |i|
-        config.vm.define "debian-#{i}" do |srv|
-          srv.vm.hostname = "debian-#{i}.homework.lab"
-          srv.vm.network "private_network", ip: "10.10.10.10#{i}"
-          srv.vm.provision "shell", inline: $common
-          srv.vm.provision "shell", inline: $dns
-          srv.vm.provider "virtualbox" do |vb|
-            vb.memory = 2048
-            vb.cpus = 1
-          end
-        end
+  # Define OpenSUSE web server
+  config.vm.define "web-suse" do |web|
+    web.vm.box = "tonytech/suse-leap-15-6"
+    web.vm.box_version = "0.0.1"
+    web.vm.hostname = "web-suse.homework.lab"
+    web.vm.network :private_network, ip: "10.10.10.102"
+    web.vm.provision "shell", inline: $common
+    web.vm.provision "shell", inline: $dns
+    web.vm.provider "virtualbox" do |vb|
+      vb.memory = 2048
+      vb.cpus = 1
+    end
+  end
+
+  # Define AlmaLinux web server
+  config.vm.define "web-alma" do |web|
+      web.vm.box = "tonytech/almalinux-9-5"
+      web.vm.box_version = "0.0.1"
+      web.vm.hostname = "web-alma.homework.lab"
+      web.vm.network :private_network, ip: "10.10.10.103"
+      web.vm.provision "shell", inline: $common
+      web.vm.provision "shell", inline: $dns
+      web.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        vb.cpus = 1
       end
+    end
 
 end
 

@@ -296,3 +296,149 @@ Step 6 - Create configuration for Host Group.
 - Check **Nagios** web page.
   
   ![debian-5](../media/debian-5.png)
+
+## Task 2
+
+### Diagram
+```
+------------+---------------------------+---------------------------+------------
+            |                           |                           |
+      enp0s8|10.10.10.101         enp0s8|10.10.10.102         enp0s8|10.10.10.103
++-----------+-----------+   +-----------+-----------+   +-----------+-----------+
+|  [ ansible-debian ]   |   |      [ web-suse ]     |   |     [ web-alma ]      |
+|                       |   |                       |   |                       |
+| ansible               |   | apache2               |   | httpd                 |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
++-----------------------+   +-----------------------+   +-----------------------+
+```
+
+### Steps
+```plain
+Step 1 - Setup ansible on ansible-debian.homework.lab
+Step 2 - Create and execute playbook.yaml
+```
+
+### Step 1 - Setup ansible on ansible-debian.homework.lab
+- Install **Ansible** package
+  ```sh
+  sudo apt update && sudo apt install ansible
+  ```
+- Generate key pair for **Ansible** connect to targets
+  ```sh
+  ssh-keygen -t ed25519 -C "ansible"
+  ```
+- Send ssh key to target machines
+  ```sh
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-suse.homework.lab
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-alma-homework.lab
+  ```
+- Create `inventory.ini` file with target machines.
+  ```ini
+  [suse]
+  web-suse.homework.lab ansible_host=10.10.10.102
+
+  [alma]
+  web-alma.homework.lab ansible_host=10.10.10.103
+
+  [all:vars]
+  ansible_user=vagrant
+  ansible_ssh_private_key_file=~/.ssh/ansible
+  ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+  ```
+- Test connection to target machines
+  ```sh
+  ansible -i inventory.ini all -m ping
+  ```
+
+### Step 2 - Create and execute playbook.yaml
+- Create `templates` folder
+  ```sh
+  sudo mkdir templates
+  ```
+- Create `index.html.j2` file
+  ```sh
+  echo "<h1>Running on {{ ansible_distribution }}</h1>" | tee templates/index.html.j2
+  ```
+- Create `playbook.yaml`
+  ```yaml
+  ---
+  - hosts: alma
+    become: true
+
+    tasks:
+      - name: Install Apache server
+        dnf:
+          name: httpd
+          state: present
+
+      - name: Ensure Apache is started and enabled at boot
+        service:
+          name: httpd
+          state: started
+          enabled: true
+
+      - name: Copy webpage
+        template:
+          src: index.html.j2
+          dest: /var/www/html/index.html
+
+      - name: Allow Apache service in firewall
+        firewalld:
+          service: http
+          state: enabled
+          permanent: true
+          immediate: true
+  
+  - hosts: suse
+    become: true
+
+    tasks:
+      - name: Install Apache server
+        zypper:
+          name: apache2
+          state: present
+
+      - name: Ensure Apache is started and enabled at boot
+        service:
+          name: apache2
+          state: started
+          enabled: true
+
+      - name: Copy webpage
+        template:
+          src: index.html.j2
+          dest: /srv/www/htdocs/index.html
+      
+      - name: Ensure firewalld is installed
+        zypper:
+          name: firewalld
+          state: present
+
+      - name: Ensure firewalld is started and enabled
+        service:
+          name: firewalld
+          state: started
+          enabled: true
+
+      - name: Allow Apache service in firewall
+        firewalld:
+          service: http
+          state: enabled
+          permanent: true
+          immediate: true
+  ```
+- Execute Ansible playbook
+  ```sh
+  ansible-playbook -i inventory.ini playbook.yaml
+  ```
+- openSUSE Leap web greeting
+  
+  ![debian-6](../media/debian-6.png)
+
+- AlmaLinux web greeting
+
+  ![debian-7](../media/debian-7.png)
