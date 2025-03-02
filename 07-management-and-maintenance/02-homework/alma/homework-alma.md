@@ -29,9 +29,9 @@ Chose and implement one or more of the following:
 
 ### Steps
 ```plain
-Step 1 - Setup Nagios on suse-1.homework.lab
-Step 2 - Setup Apache on suse-2.homework.lab
-Step 3 - Setup MariaDB on suse-3.homework.lab
+Step 1 - Setup Nagios on alma-1.homework.lab
+Step 2 - Setup Apache on alma-2.homework.lab
+Step 3 - Setup MariaDB on alma-3.homework.lab
 Step 4 - Configure hosts and services monitoring in Nagios.
 Step 5 - Create configuration for Service Group.
 Step 6 - Create configuration for Host Group.
@@ -127,7 +127,7 @@ Step 6 - Create configuration for Host Group.
   sudo chown root:nagios /etc/nagios/servers
   sudo chmod 750 /etc/nagios/servers
   ```
-- Setup `apache.cfg` configuration for host and Apache running on `alma-1.homework.lab`
+- Setup `apache.cfg` configuration for host and Apache running on `alma-2.homework.lab`
   ```conf
   define host {
           use linux-server
@@ -143,7 +143,7 @@ Step 6 - Create configuration for Host Group.
           check_command check_http!$HOSTADDRESS$
   }
   ```
-- Setup `mariadb.cfg` configuration for host and MariaDB running on `alma-2.homework.lab`
+- Setup `mariadb.cfg` configuration for host and MariaDB running on `alma-3.homework.lab`
   ```cfg
   define host {
           use linux-server
@@ -215,7 +215,7 @@ Step 6 - Create configuration for Host Group.
   ![alma-4](../media/alma-4.png)
 
 ### Step 6 - Create configuration for Host Group.
-- - Create a new file called `hostgroups.cfg` inside `/etc/nagios/groups`
+- Create a new file called `hostgroups.cfg` inside `/etc/nagios/groups`
   ```cfg
   define hostgroup {
           hostgroup_name     APP-HST
