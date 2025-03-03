@@ -399,7 +399,7 @@ Step 2 - Create and execute playbook.yaml
   ```sh
   ansible-playbook -i inventory.ini playbook.yaml --syntax-check
   ```
-  Execute **Ansible** playbook
+- Execute **Ansible** playbook
   ```sh
   ansible-playbook -i inventory.ini playbook.yaml
   ```
