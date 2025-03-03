@@ -395,6 +395,14 @@ Step 2 - Create and execute playbook.yaml
           port: '80'
           proto: tcp
   ```
+- Check syntax errors
+  ```sh
+  ansible-playbook -i inventory.ini playbook.yaml --syntax-check
+  ```
+  Execute **Ansible** playbook
+  ```sh
+  ansible-playbook -i inventory.ini playbook.yaml
+  ```
   Output
   ```sh
   PLAY [centos] ************************************************************************************************************************************
@@ -440,14 +448,6 @@ Step 2 - Create and execute playbook.yaml
   PLAY RECAP ***************************************************************************************************************************************
   web-centos.homework.lab    : ok=5    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
   web-ubuntu.homework.lab    : ok=7    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
-  ```
-- Check syntax errors
-  ```sh
-  ansible-playbook -i inventory.ini playbook.yaml --syntax-check
-  ```
-- Execute **Ansible** playbook
-  ```sh
-  ansible-playbook -i inventory.ini playbook.yaml
   ```
 - CentOS web greeting
   
