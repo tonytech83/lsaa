@@ -334,7 +334,7 @@ Step 2 - Create and execute playbook.yaml
 - Send ssh key to target machines
   ```sh
   ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-suse.homework.lab
-  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-alma-homework.lab
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-alma.homework.lab
   ```
 - Create `inventory.ini` file with target machines.
   ```ini

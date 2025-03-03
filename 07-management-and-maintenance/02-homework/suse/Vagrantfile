@@ -1,0 +1,78 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+echo '127.0.0.1       localhost' > /etc/hosts
+echo '' >> /etc/hosts
+echo 'ff02::1 ip6-allnodes' >> /etc/hosts
+echo 'ff02::2 ip6-allrouters' >> /etc/hosts
+echo '' >> /etc/hosts
+echo '10.10.10.101 ansible-suse.homework.lab ansible-suse' >> /etc/hosts
+echo '10.10.10.102 web-centos.homework.lab web-centos' >> /etc/hosts
+echo '10.10.10.103 web-ubuntu.homework.lab web-ubuntu' >> /etc/hosts
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  
+    # Define openSUSE Leap Ansible server
+    config.vm.define "ansible-suse" do |ansible|
+      ansible.vm.box = "tonytech/suse-leap-15-6"
+      ansible.vm.box_version = "0.0.1"  
+      ansible.vm.hostname = "ansible-suse.homework.lab"
+      ansible.vm.network :private_network, ip: "10.10.10.101"
+      ansible.vm.provision "shell", inline: $common
+      ansible.vm.provision "shell", inline: $dns
+      ansible.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        vb.cpus = 1
+      end
+    end
+  
+    # Define CentOS web server
+    config.vm.define "web-centos" do |web|
+      web.vm.box = "generic/centos9s"
+      web.vm.box_version = "4.3.12"
+      web.vm.hostname = "web-centos.homework.lab"
+      web.vm.network :private_network, ip: "10.10.10.102"
+      web.vm.provision "shell", inline: $common
+      web.vm.provision "shell", inline: $dns
+      web.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        vb.cpus = 1
+      end
+    end
+
+    # Define Debian web server
+    config.vm.define "web-ubuntu" do |web|
+        web.vm.box = "generic-x64/ubuntu2310"
+        web.vm.box_version = "4.3.12"
+        web.vm.hostname = "web-ubuntu.homework.lab"
+        web.vm.network :private_network, ip: "10.10.10.103"
+        web.vm.provision "shell", inline: $common
+        web.vm.provision "shell", inline: $dns
+        web.vm.provider "virtualbox" do |vb|
+          vb.memory = 2048
+          vb.cpus = 1
+        end
+      end
+  
+  end

@@ -16,12 +16,12 @@ Chose and implement one or more of the following:
             |                           |                           |
       enp0s8|10.10.10.101         enp0s8|10.10.10.102         enp0s8|10.10.10.103
 +-----------+-----------+   +-----------+-----------+   +-----------+-----------+
-|       [ alma-1 ]      |   |       [ alma-2 ]      |   |       [ alma-3 ]      |
+|       [ suse -1 ]     |   |       [ suse-2 ]      |   |       [ suse-3 ]      |
 |                       |   |                       |   |                       |
-| nagios                |   | httpd                 |   | mariadb-server        |
-| nagios-common         |   |                       |   |                       |
-| nagios-selinux        |   |                       |   |                       |
-| nagios-plugins-all    |   |                       |   |                       |
+| nagios                |   | apache2               |   | mariadb               |
+| monitoring-plugins    |   |                       |   |                       |
+|                       |   |                       |   |                       |
+|                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 +-----------------------+   +-----------------------+   +-----------------------+
@@ -29,81 +29,77 @@ Chose and implement one or more of the following:
 
 ### Steps
 ```plain
-Step 1 - Setup Nagios on alma-1.homework.lab
-Step 2 - Setup Apache on alma-2.homework.lab
-Step 3 - Setup MariaDB on alma-3.homework.lab
+Step 1 - Setup Nagios on suse-1.homework.lab
+Step 2 - Setup Apache on suse-2.homework.lab
+Step 3 - Setup MariaDB on suse-3.homework.lab
 Step 4 - Configure hosts and services monitoring in Nagios.
 Step 5 - Create configuration for Service Group.
 Step 6 - Create configuration for Host Group.
 ```
 
 ### Step 1 - Setup Nagios on suse-1.homework.lab
-- Install EPEL repository
+- Install **Nagios** and plugins
   ```sh
-  sudo dnf install epel-release    
+  sudo zypper install nagios monitoring-plugins
   ```
-- Then enable the **PowerTools** or the **CodeReady Builder (CRB)** repository
+- Enable the following module
   ```sh
-  sudo dnf config-manager --set-enabled crb
+  sudo a2enmod php8
   ```
-- Install **Nagios** and the required packages
+- Start and enable **Apache** service
   ```sh
-  sudo dnf install nagios nagios-common nagios-selinux nagios-plugins-all
+  sudo systemctl enable --now apache2
   ```
-- Start and enable Nagios service
+- Start and enable **Nagios** service
   ```sh
   sudo systemctl enable --now nagios
-  ```
-- Start and enable Apache service used by Nagios
-  ```sh
-  sudo systemctl enable --now httpd
   ```
 - Setup firewall
   ```sh
   sudo firewall-cmd --add-service={http,https} --permanent
   sudo firewall-cmd --reload
-  ``` 
-- Update password for user **nagiosadmin**
-  ```sh
-  sudo htpasswd /etc/nagios/passwd nagiosadmin
   ```
-- Try to login on http://10.10.10.101/nagios with nagiosadmin and password from above.
+- Create Nagios admin user
+  ```sh
+  sudo htpasswd /etc/nagios/htpasswd.users nagiosadmin
+  ```
 
 ### Step 2 - Setup Apache on suse-2.homework.lab
-- Install Apache
+- Install **Apache**
   ```sh
-  sudo dnf install httpd
+  sudo zypper install apache2
   ```
-- Create custom **index.html** file
+- Create custom `index.html` file
   ```sh
-  sudo echo "<h1>Hello from the Apache server</h1><p>running on $(hostname)</p><p>$(date)</p>" | sudo tee /var/www/html/index.html
+  sudo echo "<h1>Hello from the Apache server</h1><p>running on $(hostname)</p><p>$(date)</p>" | sudo tee /srv/www/htdocs/index.html
   ```
-- Start and enable Apache service
+- Start and enable **Apache** service
   ```sh
-  sudo systemctl enable --now httpd
+  sudo systemctl enable --now apache2
   ```
 - Setup firewall
   ```sh
   sudo firewall-cmd --add-service http --permanent
   sudo firewall-cmd --reload
   ```
-- Check service from outside.
+- Check the web service outside
   
-  ![alma-1](../media/alma-1.png)
-### Step 3 - Setup MariaDB on suse-3.homework.lab
-- Install **MariaDB**
+  ![suse-1](../media/suse-1.png)
+
+Step 3 - Setup MariaDB on suse-3.homework.lab
+- Install MariaDB package
   ```sh
-  sudo dnf install mariadb-server
+  sudo zypper install mariadb
   ```
-- Start and enable MariaDB service
+- Start and enable the service
   ```sh
   sudo systemctl enable --now mariadb
   ```
-- Set up initial configuration
+- Execute the initial configuration
   ```sh
   sudo mysql_secure_installation
   ```
-- Create a user for Nagios to connect to the database
+- Create a user used by **Nagios** to access the database
   ```sh
   mysql -u root -p -e "CREATE USER 'nagios-mon'@'10.10.10.101' IDENTIFIED BY 'pass-123123'; FLUSH PRIVILEGES;"
   ```
@@ -112,9 +108,18 @@ Step 6 - Create configuration for Host Group.
   sudo firewall-cmd --add-port 3306/tcp --permanent
   sudo firewall-cmd --reload
   ```
+- Made **MariaDB** to listen on all interfaces. Open for edit `/etc/my.cnf` and modify bind-address.
+  ```plain
+  [mysqld]
+  bind-address = 0.0.0.0
+  ```
+- Restart **MariaDB** service
+  ```sh
+  sudo systemctl restart mariadb
+  ```
 
 ### Step 4 - Configure hosts and services monitoring in Nagios.
-- Edit Nagios configuration file `/etc/nagios/nagios.cfg`. Uncomment folder where servers configuration files will stored. 
+- Edit **Nagios** configuration file `/etc/nagios/nagios.cfg`. Uncomment folder where servers configuration files will stored.
   ```cfg
   cfg_dir=/etc/nagios/servers
   ```
@@ -122,97 +127,99 @@ Step 6 - Create configuration for Host Group.
   ```sh
   sudo mkdir -p /etc/nagios/servers
   ```
-- Set permissions
+- Set ownership
   ```sh
-  sudo chown root:nagios /etc/nagios/servers
-  sudo chmod 750 /etc/nagios/servers
+  sudo chown root:nagcmd /etc/nagios/servers
   ```
-- Setup `apache.cfg` configuration for host and Apache running on `alma-2.homework.lab`
-  ```conf
+- Setup `/etc/nagios/servers/apache.cfg` configuration for host and **Apache** running on `suse-2.homework.lab`
+  ```cfg
   define host {
           use linux-server
-          host_name alma-2.homework.lab
-          alias ALMA-2 VM
+          host_name suse-2.homework.lab
+          alias SUSE-2 VM
           address 10.10.10.102
   }
 
   define service {
           use generic-service
-          host_name alma-2.homework.lab
+          host_name suse-2.homework.lab
           service_description WEB
           check_command check_http!$HOSTADDRESS$
   }
   ```
-- Setup `mariadb.cfg` configuration for host and MariaDB running on `alma-3.homework.lab`
+- Install **check_mysql_health** plugin if missing.
+  ```sh
+  sudo zypper install monitoring-plugins-mysql_health
+  ```
+- Setup `/etc/nagios/servers/mariadb.cfg` configuration for host and **MariaDB** running on `alma-3.homework.lab`
   ```cfg
   define host {
           use linux-server
-          host_name alma-3.homework.lab
-          alias ALMA-3 VM
+          host_name suse-3.homework.lab
+          alias SUSE-3 VM
           address 10.10.10.103
   }
 
   define command {
           command_name check_mysql_cmdlinecred
-          command_line $USER1$/check_mysql -H '$HOSTADDRESS$' -u '$ARG1$' -p '$ARG2$'
+          command_line $USER1$/check_mysql_health --hostname '$HOSTADDRESS$' --username '$ARG1$' --password '$ARG2$' --mode connection-time
   }
 
   define service {
           use generic-service
-          host_name alma-3.homework.lab
+          host_name suse-3.homework.lab
           service_description DB
           check_command check_mysql_cmdlinecred!nagios-mon!pass-123123
   }
   ```
-- Test `Nagios` configuration
+- Test **Nagios** configuration
   ```sh
   sudo nagios -v /etc/nagios/nagios.cfg
   ```
-- Restart `Nagios` service
+- Restart **Nagios** service
   ```sh
   sudo systemctl restart nagios
   ```
 - Check hosts
   
-  ![alma-2](../media/alma-2.png)
+  ![suse-2](../media/suse-2.png)
 
 - Check services
 
-  ![alma-3](../media/alma-3.png)
+  ![suse-3](../media/suse-3.png)
 
 ### Step 5 - Create configuration for Service Group.
 - Create folder `groups` to gather all group types.
   ```sh
   sudo mkdir -p /etc/nagios/groups
   ```
-- Set permissions
+- Set ownership
   ```sh
-  sudo chown root:nagios /etc/nagios/groups/
-  sudo chmod 750 /etc/nagios/groups/
+  sudo chown root:nagcmd /etc/nagios/groups/
   ```
-- Edit Nagios configuration file `/etc/nagios/nagios.cfg`. Add new line for new created folder. 
-  ```cfg
+- Edit **Nagios** configuration file `/etc/nagios/nagios.cfg`. Add new line for new created folder.
+  ```plain
   cfg_dir=/etc/nagios/groups
   ```
-- Create a new file called `servicegroups.cfg` inside `/etc/nagios/groups`
+- Create a new file called `servicegroups.cfg `inside `/etc/nagios/groups`
   ```cfg
   define servicegroup {
           servicegroup_name  APP-SVC
           alias              Application service
-          members            alma-2.homework.lab,WEB,alma-3.homework.lab,DB
+          members            suse-2.homework.lab,WEB,suse-3.homework.lab,DB
   }
   ```
 - Check for configuration errors
   ```sh
   sudo nagios -v /etc/nagios/nagios.cfg
   ```
-- Restart `Nagios` service
+- Restart **Nagios** service
   ```sh
   sudo systemctl restart nagios
   ```
-- Check **Nagios** web page.
+- Check **Service Groups** tab on web page.
   
-  ![alma-4](../media/alma-4.png)
+  ![suse-4](../media/suse-4.png)
 
 ### Step 6 - Create configuration for Host Group.
 - Create a new file called `hostgroups.cfg` inside `/etc/nagios/groups`
@@ -220,21 +227,22 @@ Step 6 - Create configuration for Host Group.
   define hostgroup {
           hostgroup_name     APP-HST
           alias              Application hosts
-          members            alma-2.homework.lab,alma-3.homework.lab
+          members            suse-2.homework.lab,suse-3.homework.lab
   }
   ```
 - Check for configuration errors
   ```sh
   sudo nagios -v /etc/nagios/nagios.cfg
   ```
-- Restart `Nagios` service
+- Restart **Nagios** service
   ```sh
   sudo systemctl restart nagios
   ```
-- Check **Nagios** web page.
+- Check **Host Groups** tab on web page.
   
-  ![alma-5](../media/alma-5.png)
-  
+  ![suse-5](../media/suse-5.png)
+
+
 ## Task 2
 
 ### Diagram
@@ -243,10 +251,10 @@ Step 6 - Create configuration for Host Group.
             |                           |                           |
       enp0s8|10.10.10.101         enp0s8|10.10.10.102         enp0s8|10.10.10.103
 +-----------+-----------+   +-----------+-----------+   +-----------+-----------+
-|    [ ansible-alma ]   |   |     [ web-centos ]    |   |     [ web-debian ]    |
+|   [ ansible-suse ]    |   |     [ web-centos ]    |   |    [ web-ubuntu ]     |
 |                       |   |                       |   |                       |
 | ansible               |   | httpd                 |   | apache2               |
-|                       |   |                       |   | ufw                   |
+|                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
 |                       |   |                       |   |                       |
@@ -256,58 +264,49 @@ Step 6 - Create configuration for Host Group.
 
 ### Steps
 ```plain
-Step 1 - Setup ansible on ansible-alma.homework.lab
-Step 2 - Create playbook.yaml
+Step 1 - Setup ansible on ansible-suse.homework.lab
+Step 2 - Create and execute playbook.yaml
 ```
 
-### Step 1 - Setup ansible on ansible-alma.homework.lab
-- Install the **EPEL** repository
+### Step 1 - Setup ansible on ansible-suse.homework.lab
+- Install the ansible package
   ```sh
-  sudo dnf install epel-release
+  sudo zypper install ansible
   ```
-- Install the **Ansible** package
-  ```sh
-  sudo dnf install ansible
-  ```
-- Generate key pair for ansible connection to clients
+- Generate key pair for Ansible connect to targets
   ```sh
   ssh-keygen -t ed25519 -C "ansible"
   ```
 - Send ssh key to target machines
   ```sh
   ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-centos.homework.lab
-  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-debian.homework.lab
+  ssh-copy-id -i ~/.ssh/ansible.pub vagrant@web-ubuntu.homework.lab
   ```
-- Create `inventory.ini` file to store target machines.
+- Create `inventory.ini `file with target machines.
   ```ini
-  [webservers]
-  web-centos.homework.lab
-  web-debian.homework.lab
-
   [centos]
-  web-centos.homework.lab
+  web-centos.homework.lab ansible_host=10.10.10.102
 
-  [debian]
-  web-debian.homework.lab
+  [ubuntu]
+  web-ubuntu.homework.lab ansible_host=10.10.10.103
 
   [all:vars]
   ansible_user=vagrant
   ansible_ssh_private_key_file=~/.ssh/ansible
   ansible_ssh_common_args='-o StrictHostKeyChecking=no'
   ```
-- Test connection to targets
+- Test connection to target machines
   ```sh
   ansible -i inventory.ini all -m ping
   ```
-
-### Step 2 - Create playbook.yaml
-- Crete templates folder
+### Step 2 - Create and execute playbook.yaml
+- Create templates folder
   ```sh
   sudo mkdir templates
   ```
-- Create `index.html.j2` file
+- Create `index.html.j2` file, where placeholder `{{ ansible_distribution }}` will be replaced with OS name.
   ```sh
-  echo "<h1>Running on {{ ansible_distribution }}</h1>" | tee templates/index.html.j2
+  echo "<h1>Running on {{ ansible_distribution }}</h1>" | sudo tee templates/index.html.j2
   ```
 - Create `playbook.yaml`
   ```yaml
@@ -338,8 +337,8 @@ Step 2 - Create playbook.yaml
           state: enabled
           permanent: true
           immediate: true
-   
-  - hosts: debian
+  
+  - hosts: ubuntu
     become: true
 
     tasks:
@@ -373,19 +372,65 @@ Step 2 - Create playbook.yaml
           rule: allow
           port: '80'
           proto: tcp
-  ``` 
+  ```
+  Output
+  ```sh
+  PLAY [centos] ************************************************************************************************************************************
+
+  TASK [Gathering Facts] ***************************************************************************************************************************
+  ok: [web-centos.homework.lab]
+
+  TASK [Install Apache server] *********************************************************************************************************************
+  ok: [web-centos.homework.lab]
+
+  TASK [Ensure Apache is started and enabled at boot] **********************************************************************************************
+  ok: [web-centos.homework.lab]
+
+  TASK [Copy webpage] ******************************************************************************************************************************
+  ok: [web-centos.homework.lab]
+
+  TASK [Allow Apache service in firewall] **********************************************************************************************************
+  ok: [web-centos.homework.lab]
+
+  PLAY [ubuntu] ************************************************************************************************************************************
+
+  TASK [Gathering Facts] ***************************************************************************************************************************
+  ok: [web-ubuntu.homework.lab]
+
+  TASK [Update APT package cache] ******************************************************************************************************************
+  ok: [web-ubuntu.homework.lab]
+
+  TASK [Install Apache server] *********************************************************************************************************************
+  changed: [web-ubuntu.homework.lab]
+
+  TASK [Ensure Apache is started and enabled at boot] **********************************************************************************************
+  ok: [web-ubuntu.homework.lab]
+
+  TASK [Copy webpage] ******************************************************************************************************************************
+  changed: [web-ubuntu.homework.lab]
+
+  TASK [Ensure UFW is enabled] *********************************************************************************************************************
+  changed: [web-ubuntu.homework.lab]
+
+  TASK [Allow Apache service in firewall] **********************************************************************************************************
+  changed: [web-ubuntu.homework.lab]
+
+  PLAY RECAP ***************************************************************************************************************************************
+  web-centos.homework.lab    : ok=5    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+  web-ubuntu.homework.lab    : ok=7    changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+  ```
 - Check syntax errors
   ```sh
   ansible-playbook -i inventory.ini playbook.yaml --syntax-check
   ```
-- Execute Ansible playbook
+- Execute **Ansible** playbook
   ```sh
   ansible-playbook -i inventory.ini playbook.yaml
   ```
 - CentOS web greeting
   
-  ![alma-6](../media/alma-6.png)
+  ![suse-6](../media/suse-6.png)
 
-- Debian web greeting
-
-  ![alma-7](../media/alma-7.png)
+- Ubuntu web greeting
+  
+  ![suse-7](../media/suse-7.png)

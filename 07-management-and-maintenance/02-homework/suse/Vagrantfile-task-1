@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+echo '127.0.0.1       localhost' > /etc/hosts
+echo '' >> /etc/hosts
+echo 'ff02::1 ip6-allnodes' >> /etc/hosts
+echo 'ff02::2 ip6-allrouters' >> /etc/hosts
+echo '' >> /etc/hosts
+echo '10.10.10.101 suse-1.homework.lab suse-1' >> /etc/hosts
+echo '10.10.10.102 suse-2.homework.lab suse-2' >> /etc/hosts
+echo '10.10.10.103 suse-3.homework.lab suse-3' >> /etc/hosts
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/suse-leap-15-6"
+    config.vm.box_version = "0.0.1"
+
+    1.upto(3) do |i|
+        config.vm.define "suse-#{i}" do |srv|
+          srv.vm.hostname = "suse-#{i}.homework.lab"
+          srv.vm.network "private_network", ip: "10.10.10.10#{i}"
+          srv.vm.provision "shell", inline: $common
+          srv.vm.provision "shell", inline: $dns
+          srv.vm.provider "virtualbox" do |vb|
+            vb.memory = 2048
+            vb.cpus = 1
+          end
+        end
+      end
+
+end
+
