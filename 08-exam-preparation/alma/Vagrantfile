@@ -8,17 +8,19 @@ RC='\033[0m'
 
 printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
 
-echo '127.0.0.1       localhost' > /etc/hosts
-echo '' >> /etc/hosts
-echo 'ff02::1 ip6-allnodes' >> /etc/hosts
-echo 'ff02::2 ip6-allrouters' >> /etc/hosts
-echo '' >> /etc/hosts
-echo '192.168.99.10 str.homework.lab str' >> /etc/hosts
-echo '192.168.99.20 cnt.homework.lab cnt' >> /etc/hosts
-echo '192.168.99.30 lba.homework.lab lba' >> /etc/hosts
-echo '192.168.99.40 wba.homework.lab wba' >> /etc/hosts
-echo '192.168.99.50 wbb.homework.lab wbb' >> /etc/hosts
-echo '192.168.99.60 mon.homework.lab mon' >> /etc/hosts
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1       localhost
+
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+192.168.10.10 str.homework.lab str
+192.168.10.20 cnt.homework.lab cnt
+192.168.10.30 lba.homework.lab lba
+192.168.10.40 wba.homework.lab wba
+192.168.10.50 wbb.homework.lab wbb
+192.168.10.60 mon.homework.lab mon
+EOF
 
 SCRIPT
 
@@ -49,7 +51,7 @@ Vagrant.configure("2") do |config|
     }.each do |hostname, ip_suffix|
       config.vm.define hostname do |srv|
         srv.vm.hostname = "#{hostname}.homework.lab"
-        srv.vm.network "private_network", ip: "192.168.99.#{ip_suffix}"
+        srv.vm.network "private_network", ip: "192.168.10.#{ip_suffix}"
         srv.vm.provision "shell", inline: $common
         srv.vm.provision "shell", inline: $dns
         srv.vm.provider "virtualbox" do |vb|
