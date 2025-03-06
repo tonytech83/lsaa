@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+echo '127.0.0.1       localhost' > /etc/hosts
+echo '' >> /etc/hosts
+echo 'ff02::1 ip6-allnodes' >> /etc/hosts
+echo 'ff02::2 ip6-allrouters' >> /etc/hosts
+echo '' >> /etc/hosts
+echo '192.168.99.10 str.homework.lab str' >> /etc/hosts
+echo '192.168.99.20 cnt.homework.lab cnt' >> /etc/hosts
+echo '192.168.99.30 lba.homework.lab lba' >> /etc/hosts
+echo '192.168.99.40 wba.homework.lab wba' >> /etc/hosts
+echo '192.168.99.50 wbb.homework.lab wbb' >> /etc/hosts
+echo '192.168.99.60 mon.homework.lab mon' >> /etc/hosts
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/almalinux-9-5"
+    config.vm.box_version = "0.0.1"
+
+    {
+      "str" => 10,
+      "cnt" => 20,
+      "lba" => 30,
+      "wba" => 40,
+      "wbb" => 50,
+      "mon" => 60
+    }.each do |hostname, ip_suffix|
+      config.vm.define hostname do |srv|
+        srv.vm.hostname = "#{hostname}.homework.lab"
+        srv.vm.network "private_network", ip: "192.168.99.#{ip_suffix}"
+        srv.vm.provision "shell", inline: $common
+        srv.vm.provision "shell", inline: $dns
+        srv.vm.provider "virtualbox" do |vb|
+          vb.memory = 2048
+          vb.cpus = 1
+        end
+      end
+    end
+
+end
+
