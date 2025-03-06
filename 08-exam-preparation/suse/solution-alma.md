@@ -27,14 +27,7 @@ You will have to accomplish a set of tasks in the following infrastructure
 ### Containers [12 pts]
 Demonstrate knowledge and readiness to work with application containers:
 - (T101 / 3 pts) Install **Docker** on the **CNT** machine
-  - Install repository
-    ```sh
-    sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
-    ```    
-  - Install the latest version
-    ```sh
-    sudo dnf install docker-ce
-    ```   
+  
 - (T102 / 2 pts) Configure **Docker** to start on boot and allow the **exam** user to use it without the need of **sudo**
   
 - (T103 / 2 pts) Start (execute) a container named **tiger** based on the **hub.zahariev.pro/hello-world** image

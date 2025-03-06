@@ -1,0 +1,65 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1       localhost
+
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+192.168.10.10 str.homework.lab str
+192.168.10.20 cnt.homework.lab cnt
+192.168.10.30 lba.homework.lab lba
+192.168.10.40 wba.homework.lab wba
+192.168.10.50 wbb.homework.lab wbb
+192.168.10.60 mon.homework.lab mon
+EOF
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/debian-12-9"
+    config.vm.box_version = "1.0.0"
+
+    {
+      "str" => 10,
+      "cnt" => 20,
+      "lba" => 30,
+      "wba" => 40,
+      "wbb" => 50,
+      "mon" => 60
+    }.each do |hostname, ip_suffix|
+      config.vm.define hostname do |srv|
+        srv.vm.hostname = "#{hostname}.homework.lab"
+        srv.vm.network "private_network", ip: "192.168.10.#{ip_suffix}"
+        srv.vm.provision "shell", inline: $common
+        srv.vm.provision "shell", inline: $dns
+        srv.vm.provider "virtualbox" do |vb|
+          vb.memory = 2048
+          vb.cpus = 1
+        end
+      end
+    end
+
+end
+
