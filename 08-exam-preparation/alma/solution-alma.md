@@ -5,7 +5,7 @@
 ### Infrastructure
 
 You will have to accomplish a set of tasks in the following infrastructure
-
+```plain
 ------+------------------------+---------------+---------------+---------------+---------------+-----
       |                        |               |               |               |               |               
       |.10                     |.20            |.30            |.40            |.50            |.60      
@@ -20,3 +20,4 @@ You will have to accomplish a set of tasks in the following infrastructure
 |           |---| 1GB |  |           |   |           |   |           |   |           |   |           | 
 +-----------+   |     |  +-----------+   +-----------+   +-----------+   +-----------+   +-----------+   
                 +-----+
+```
