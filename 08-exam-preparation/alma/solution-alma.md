@@ -76,23 +76,148 @@ Demonstrate knowledge and readiness to work with storage related technologies (m
 Create a simple **software RAID** with **MD**:
 
 - (T201 / 2 pts) Utilize the two extra drives (each 1 GB) to create a **RAID1** device **/dev/md0**
-
+  - Create partition on `/dev/sdb`
+    ```sh
+    sudo parted -s /dev/sdb -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+    ```
+  - Create partition on `/dev/sdc`
+    ```sh
+    sudo parted -s /dev/sdc -- mklabel msdos mkpart primary 2048s -0m set 1 raid on
+    ```
+  - Create RAID 1
+    ```sh
+    sudo mdadm --create /dev/md0 --level 1 --raid-devices 2 /dev/sd{b,c}1
+    ```
 - (T202 / 1 pts) Make the configuration **persistent** (alter the appropriate file, for example **/etc/mdadm.conf**)
-
+  - Dump the configuration 
+    ```sh
+    sudo mdadm --detail --brief /dev/md0 | sudo tee -a /etc/mdadm.conf
+    ```
 - (T203 / 1 pts) Create an **ETX4** file system on the **RAID device**
-  
+  ```sh
+  sudo mkfs.ext4 /dev/md0
+  ```
 - (T204 / 2 pts) Mount it at **/storage/raidmd** and add a record in the **/etc/fstab**
-
+  - Create mounting point `/storage/raidmd/`
+    ```sh
+    sudo mkdir -p /storage/raidmd/
+    ```
+  - Do test mount
+    ```sh
+    sudo mount /dev/md0 /storage/raidmd
+    ```
+  - Take the UUID of file system
+    ```sh
+    sudo blkid /dev/md0
+    ```
+  - Open for editing `/etc/fstab` and add new line
+    ```plain
+    # RAID mount
+    UUID="71b02b0c-a22e-4ee6-919d-5f847b051775"     /storage/raidmd         ext4   defaults        0 0
+    ```
+  - Unmount the attached file system
+    ```sh
+    sudo umount /storage/raidmd
+    ```
+  - Reload all drives from `/etc/fstab`
+    ```sh
+    sudo mount -av
+    ```
 Create an **iSCSI** storage configuration:
 
 - (T205 / 1 pts) Install the necessary **iSCSI**-related packages on the **STR** machine
-
+  ```sh
+  sudo dnf install targetcli
+  ```
 - (T206 / 1 pts) Create an **iSCSI target** pointing to a **1 GB** disk image file named **D1GB.img**
-
+  - Create folder where will store virtual disks
+    ```sh
+    sudo mkdir /var/lib/iscsi-images
+    ```
+  - Execute targetcli tool
+    ```sh
+    sudo targetcli
+    ```
+  - Create disk image file
+    ```sh
+    backstores/fileio create D1 /var/lib/iscsi-images/D1GB.img 1G
+    ```
+  - Create target IQN
+    ```sh
+    iscsi/ create iqn.2025-03.lab.exam:str.target1
+    ```
+  - Create LUN
+    ```sh
+    iscsi/iqn.2025-03.lab.exam:str.target1/tpg1/luns create /backstores/fileio/D1
+    ```
 - (T207 / 1 pts) Register the **LBA** machine as an **initiator** for the disk
-
+  - Register initiator
+    ```
+    iscsi/iqn.2025-03.lab.exam:str.target1/tpg1/acls create iqn.2025-03.lab.exam:lba.init1
+    ```
+  - Start and enable service
+    ```sh
+    sudo systemctl enable --now targe
+    ```
+  - Setup firewall
+    ```sh
+    sudo firewall-cmd --add-service iscsi-target --permanent
+    sudo firewall-cmd --reload
+    ```
 - (T208 / 2 pts) Create an **XFS** file system on the **iSCSI** disk on the **LBA** machine and add an entry in the **/etc/fstab** to mount it to **/storage/iscsi**
-
+  - Install iSCSI client
+    ```sh
+    sudo dnf install iscsi-initiator-utils
+    ```
+  - Set the initiator name `/etc/iscsi/initiatorname.iscsi`
+    ```sh
+    InitiatorName=iqn.2025-03.lab.exam:lba.init1
+    ```
+  - Start and enable the service
+    ```sh
+    sudo systemctl enable --now iscsi
+    ```
+  - Request targets from target server
+    ```sh
+    sudo iscsiadm -m discovery -t sendtargets -p str
+    ```
+  - Login (not needed in this test scenario)
+    ```sh
+    sudo iscsiadm -m node --login
+    ```
+  - Create partition
+    ```sh
+    sudo parted -s /dev/sdb -- mklabel msdos mkpart primary 16384s -0m
+    ```
+  - Create file system
+    ```sh
+    sudo mkfs.xfs /dev/sdb1
+    ```
+  - Create mounting point
+    ```sh
+    sudo mkdir -p /storage/iscsi
+    ```
+  - Test mount
+    ```sh
+    sudo mount /dev/sdb1 /storage/iscsi
+    ```
+  - Take UUID of file system
+    ```sh
+    sudo blkid /dev/sdb1
+    ```
+  - Unmount file system
+    ```sh
+    sudo umount /storage/iscsi/
+    ```
+  - Add line to `/etc/fstab`
+    ```plain
+    # iSCSI
+    UUID="4ac37c73-ee88-41c9-be57-2baeccd0c421" /storage/iscsi/     xfs     _netdev 0 0
+    ```
+  - Reload all drives from `/etc/fstab`
+    ```sh
+    sudo mount -av
+    ```
 Create a simple **NFS** export:
 
 - (T209 / 1 pts) Install **NFS** on the **STR** machine
