@@ -221,10 +221,77 @@ Create an **iSCSI** storage configuration:
 Create a simple **NFS** export:
 
 - (T209 / 1 pts) Install **NFS** on the **STR** machine
-
+  - install nfs package
+    ```sh
+    sudo dnf install nfs-utils
+    ```
+  - Made configuration only ot server nfs4
+    ```
+    sudo nfsconf --set nfsd vers4 y
+    sudo nfsconf --set nfsd vers3 n
+    sudo nfsconf --set nfsd udp n
+    sudo nfsconf --set nfsd tcp y
+    ```
+  - Start and enable service
+    ```sh
+    sudo systemctl enable --now nfs-server
+    ```
+  - Mask unused services
+    ```sh
+    sudo systemctl mask --now rpcbind.service rpcbind.socket rpc-statd.servic
+    ```
+  - Check nfs listening ports
+    ```sh
+    sudo ss -4tl
+    ```
+  - Setup firewall
+    ```sh
+    sudo firewall-cmd --add-service nfs --permanent
+    sudo firewall-cmd --reload
+    ```
 - (T210 / 2 pts) Export the **/storage/nfs** folder with **rw** permissions for **WBA** and **WBB**
-
+  - Create export folder
+    ```sh
+    sudo mkdir -p /storage/nfs
+    ```
+  - Open and edit files with exports `/etc/exports`
+    ```plain
+    /storage/nfs 192.168.10.40(rw) 192.168.10.50(rw)
+    ```
+  - Execute
+    ```sh
+    sudo exportfs -rav
+    ```
 - (T211 / 2 pts) Mount the export on both the **WBA** and **WBB** machines at **/storage/export** and add a record to the **/etc/fstab**
+  - Install nfs package
+    ```sh
+    sudo dnf install nfs-utils
+    ```
+  - Create mounting point
+    ```sh
+    sudo mkdir -p /storage/export
+    ```
+  - Test mount
+    ```sh
+    sudo mount -t nfs4 str:/storage/nfs /storage/export
+    ```
+  - Check mount
+    ```sh
+    df -hT
+    ```
+  - Unmount file system
+    ```sh
+    sudo umount -at nfs4
+    ```
+  - Edit and add line in `/etc/fstab`
+    ```plain
+    # NFS Export
+    str:/storage/nfs        /storage/export nfs4    defaults        0 0
+    ```
+  - Reload all drives from `/etc/fstab`
+    ```sh
+    sudo mount -av
+    ```
 
 ### Load Balancing [8 pts]
 
