@@ -41,8 +41,21 @@ Vagrant.configure("2") do |config|
     config.vm.box = "tonytech/almalinux-9-5"
     config.vm.box_version = "0.0.1"
 
+    config.vm.define "str" do |srv|
+      srv.vm.hostname = "str.homework.lab"
+      srv.network "private_network", ip: "192.168.10.10"
+      srv.vm.provision "shell", inline: $common
+      srv.vm.provision "shell", inline: $dns
+      (0..1).each do |i|
+        srv.vm.disk :disk, size: "1GB", name: "disk-#{i}"
+      end
+      srv.vm.provider "virtualbox" do |vb|
+        vb.memory = 2048
+        vb.cpus = 1
+      end
+    end 
+
     {
-      "str" => 10,
       "cnt" => 20,
       "lba" => 30,
       "wba" => 40,

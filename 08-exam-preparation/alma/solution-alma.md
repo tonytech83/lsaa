@@ -36,8 +36,18 @@ Demonstrate knowledge and readiness to work with application containers:
     sudo dnf install docker-ce
     ```   
 - (T102 / 2 pts) Configure **Docker** to start on boot and allow the **exam** user to use it without the need of **sudo**
-  
+  - Ensure **Docker** starts on boot
+    ```sh
+    sudo systemctl enable --now docker
+    ```
+  - Add user **exam** to **docker** group
+    ```sh
+    sudo usermod -aG docker exam
+    ```
 - (T103 / 2 pts) Start (execute) a container named **tiger** based on the **hub.zahariev.pro/hello-world** image
+  ```sh
+  docker run -it --name tiger hub.zahariev.pro/hello-world
+  ```
   
 Start a container based on the **hub.zahariev.pro/httpd** that meets the following requirements:
 
@@ -48,6 +58,15 @@ Start a container based on the **hub.zahariev.pro/httpd** that meets the followi
 - (T106 / 1 pts) Port **80** of the container is forwarded to port **8080** on the **CNT** machine
 
 - (T107 / 2 pts) The default web page (or the whole folder) in the container is mounted from a local folder (**~/html**) containing **index.html** with the sentence **Linux Guru**
+
+  - Execute docker command
+    ```sh
+    docker run -d --name httpd-web -p 8080:80 -v ~/html:/usr/local/apache2/htdocs/ hub.zahariev.pro/httpd
+    ```
+  - Test with curl
+    ```sh
+    curl http://localhost:8080
+    ```
   
 *More about those container images could be found here: http://hub.zahariev.pro/index.html*
 
