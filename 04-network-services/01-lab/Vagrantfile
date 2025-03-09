@@ -1,0 +1,51 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+$common = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add hosts to /etc/hosts ..."
+
+sudo tee /etc/hosts > /dev/null <<EOF
+127.0.0.1       localhost
+
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+192.168.81.101 almalinux-m1.lsaa.lab almalinux-m1
+192.168.81.102 almalinux-m2.lsaa.lab almalinux-m2
+192.168.81.103 almalinux-m3.lsaa.lab almalinux-m3
+EOF
+
+SCRIPT
+
+$dns = <<SCRIPT
+
+GREEN='\033[32m'
+RC='\033[0m'
+
+printf "%b\n" "${GREEN}***${RC} Add DNS servers ..."
+
+echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null
+echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf > /dev/null
+
+SCRIPT
+
+
+Vagrant.configure("2") do |config|
+    config.vm.box = "tonytech/almalinux-9-5"
+    config.vm.box_version = "0.0.1"
+
+    1.upto(3) do |i|
+        config.vm.define "almalinux-m#{i}" do |node|
+          node.vm.hostname = "almalinux-m#{i}.homework.lab"
+          node.vm.network "private_network", ip: "192.168.81.10#{i}"
+          node.vm.provision "shell", inline: $common
+          node.vm.provision "shell", inline: $dns
+        end
+      end
+
+end
+
