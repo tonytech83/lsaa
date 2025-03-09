@@ -476,11 +476,100 @@ Demonstrate knowledge and readiness to work with web servers (on both **WBA** an
 Demonstrate knowledge and readiness to work with monitoring solutions:
 
 - (T601 / 3 pts) Install **Nagios** on the **MON** machine and make sure it is **started** and set to **start on boot**
-
+  - Add EPEL-release repository
+    ```sh
+    sudo dnf install epel-release
+    ```
+  - Enable CRB
+    ```sh
+    sudo dnf config-manager --set-enabled crb
+    ```
+  - Install Nagios packages
+    ```sh
+    sudo dnf install nagios nagios-common nagios-selinux nagios-plugins-all
+    ```
+  - Start and enable Apache service
+    ```sh
+    sudo systemctl enable --now httpd
+    ```
+  - Start and enable Nagios service
+    ```sh
+    sudo systemctl enable --now nagios.service
+    ```
+  - Setup firewall
+    ```sh
+    sudo firewall-cmd --add-service={http,https} --permanent
+    sudo firewall-cmd --reload
+    ```
 - (T602 / 1 pts) Create a **nagiosadmin** user with password set to **LSAA-Exam**
+  ```sh
+  sudo htpasswd /etc/nagios/passwd nagiosadmin
+  ```
 
 - (T603 / 2 pts) Create a file **/etc/nagios/objects/exam-xxx.cfg** for every machine except the **MON**, where **xxx** is the name of the machine (adjust the path to match your situation). For example, **exam-cnt.cfg**, **exam-str.cfg**, etc. Include those files in the main configuration file
-
+  - Create config files for each machine
+    ```sh
+    sudo touch /etc/nagios/objects/exam-{str,cnt,lba,wba,wbb}.cfg
+    ```
+  - Include the config files in the main configuration file `/etc/nagios/nagios.cfg`
+    ```cfg
+    cfg_file=/etc/nagios/objects/exam-str.cfg
+    cfg_file=/etc/nagios/objects/exam-cnt.cfg
+    cfg_file=/etc/nagios/objects/exam-lba.cfg
+    cfg_file=/etc/nagios/objects/exam-wba.cfg
+    cfg_file=/etc/nagios/objects/exam-wbb.cfg
+    ```
+  - Test Nagios config
+    ```sh
+    sudo nagios -v /etc/nagios/nagios.cfg
+    ```
+  - Restart Nagios service
+    ```sh
+    sudo systemctl restart nagios.service
+    ```
 - (T604 / 4 pts) Adjust configurations made in **T603** to include the nodes (all except MON) for monitoring by adding their object definitions
-
+  - Edit `/etc/nagios/objects/exam-str.cfg`
+    ```cfg
+    define host {
+      use         linux-server
+      host_name   srt.homework.lab
+      alias       STR
+      address     192.168.10.10
+    }
+    ```
+    ***Do same for rest of VMs (cnt, lba, wba and wbb)***
+  - Test Nagios config
+    ```sh
+    sudo nagios -v /etc/nagios/nagios.cfg
+    ```
+  - Restart Nagios service
+    ```sh
+    sudo systemctl restart nagios.service
+    ```
 - (T605 / 2 pts) Setup monitoring of the **HTTP** service running on **WBA** and **WBB** in the appropriate configuration files created earlier (**exam-wba.cfg** and **exam-wbb.cfg**)
+  - Open `/etc/nagios/objects/exam-wba.cfg` and define service
+    ```cfg
+    define service {
+            use                     generic-service
+            host_name               wba.homework.lab
+            service_description     HTTP
+            check_command           check_http!$HOSTADDRESS$
+    }
+    ```
+  - Open `/etc/nagios/objects/exam-wbb.cfg` and define service
+    ```cfg
+     define service {
+            use                     generic-service
+            host_name               wbb.homework.lab
+            service_description     HTTP
+            check_command           check_http!$HOSTADDRESS$
+    } 
+    ```
+  - Check Nagios configuration
+    ```sh
+    sudo nagios -v /etc/nagios/nagios.cfg
+    ```
+  - Restart Nagios service
+    ```sh
+    sudo systemctl restart nagios.service
+    ```
