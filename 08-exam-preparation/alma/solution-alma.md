@@ -298,21 +298,83 @@ Create a simple **NFS** export:
 Demonstrate knowledge and readiness to work with load balancing solutions:
 
 - (T301 / 2 pts) Install **HAProxy** on the **LBA** machine
-
+  - Install HAProxy package
+    ```sh
+    sudo dnf install haproxy
+    ```
 - (T302 / 2 pts) Create a front-end configuration block to listen on port **8080**
 
 - (T303 / 2 pts) Create a back-end configuration block that contains **WBA** and **WBB** with **roundrobin** algorithm
 
 - (T304 / 2 pts) Make sure that when accessed the load balancer will redirect to the added **virtual host** (port **8080**) on both web servers
+    - Do configuration change `etc/haproxy/haproxy.cfg`. Remove predefined `frontend`, `backend` and `balancing`. Paste new configuration after `common defaults` 
+    ```cfg
+    ...
 
+    frontend http-in
+        bind                *:8080
+        default_backend     web_servers
+        option              forwardfor
+
+    backend web_servers
+        balance             roundrobin
+        server              wba 192.168.10.40:8080 check
+        server              wbb 192.168.10.50:8080 check
+    ```
+  - Check haproxy configuration
+    ```sh
+    sudo haproxy -c -f /etc/haproxy/haproxy.cfg
+    ```
+  - Start and enable haproxy service
+    ```sh
+    sudo systemctl enable --now haproxy
+    ```
+  - Setup firewall
+    ```sh
+    sudo firewall-cmd --add-port 8080/tcp --permanent
+    sudo firewall-cmd --reload
+    ```
+  - Check open ports
+    ```sh
+    sudo ss -ntpl
+    ```
+  - Check is configuration works as expected
+    ```sh
+    curl http://localhost:8080
+    ```
 ### Configuration Management [7 pts]
 
 Demonstrate knowledge and readiness to work with configuration management solutions (on the **LBA** machine against both **WBA** and **WBB** machines):
 
 - (T401 / 1 pts) Install **Ansible** on the **LBA** machine
-
+  - Add EPEL release repository
+    ```sh
+    sudo dnf install epel-release
+    ```
+  - Install **Ansible** package
+    ```sh
+    sudo dnf install ansible
+    ```
 - (T402 / 1 pts) Create **system-level inventory** that includes both **WBA** and **WBB** machines grouped as **web**
-
+  - Open and edit ansible system inventory file `/ect/ansible/hosts`. Add 
+    ```plain
+    [web]
+    wba.homework.lab
+    wbb.homework.lab
+    ```
+  - Generate key-pair for Ansible remote ssh connection to targets
+    ```sh
+    ssh-keygen -t ed25519 -C "ansible"
+    ```
+  - Sent ssh key to target machines
+    ```sh
+    ssh-copy-id -i ~/.ssh/id_ed25519.pub vagrant@wba.homework.lab
+    ssh-copy-id -i ~/.ssh/id_ed25519.pub vagrant@wbb.homework.lab
+    ```
+  - Test module against the inventory
+    ```sh
+    ansible all -m ping
+    ```
 - Then create a playbook **~/exam.yml** (or **~/exam.yaml**) that when executed will do the following
 
     - (T403 / 1 pts) Refers to the **web** group of hosts
@@ -320,18 +382,92 @@ Demonstrate knowledge and readiness to work with configuration management soluti
     - (T404 / 1 pts) Installs **NGINX** on them
 
     - (T405 / 1 pts) Configures the service to be **started** and configured to **start on boot**
+  
+      ```yaml
+      ---
+      - hosts: web
+        become: true
+
+        tasks:
+          - name: Install NGINX web server
+            dnf:
+              name: nginx
+              state: present
+
+          - name: Ensure NGINX is started and enabled on boot
+            service:
+              name: nginx
+              state: started
+              enabled: true
+
+          - name: Allow NGINX service in firewall
+            firewalld:
+              service: http
+              state: enabled
+              permanent: true
+              immediate: true
+
+          - name: Copy index.html
+            copy:
+              src: ~/index.html
+              dest: /usr/share/nginx/html/index.html
+              owner: nginx
+              group: nginx
+      ```
 
     - (T406 / 1 pts) Changes the **default web page** to a page, containing the text **LSAA Exam**
+      - Create a new **index.html** file
+        ```sh
+        echo "LSAA Exam" | tee index.html
+        ```
 
 - (T407 / 1 pts) Executes successfully
+  - Do syntax check
+    ```sh
+    ansible-playbook ~/exam.yaml --syntax-check
+    ```
+  - Execute playbook
+    ```sh
+    ansible-playbook ~/exam.yaml
+    ```
 
 ### Web Servers [5 pts]
 
 Demonstrate knowledge and readiness to work with web servers (on both **WBA** and **WBB** machines):
 
 - (T501 / 4 pts) Create a **virtual host** and set it to **listen** on port **8080**
+  - Create new file `/etc/nginx/conf.d/vhost-port.conf`
+    ```conf
+    server {
+      listen 8080;
 
+      location / {
+        root /usr/share/nginx/vhost-port;
+        index index.html;
+      }
+    }
+    ```
+  - Create path where files lives
+    ```sh
+    sudo mkdir /usr/share/nginx/vhost-port
+    ```
+  - Test Nginx configuration
+    ```sh
+    sudo nginx -t
+    ```
+  - Restart Nginx
+    ```sh
+    sudo systemctl restart nginx
+    ```
+  - Open port 8080 in firewall
+    ```sh
+    sudo firewall-cmd --add-port 8080/tcp --permanent
+    sudo firewall-cmd --reload
+    ```
 - (T502 / 1 pts) Create an index page for the virtual host, that shows your **SoftUni ID** (this is your SoftUni @username) and the name of the host. For example, the result for host **WBA** may look like this **@student on WBA**
+  ```sh
+  echo '<h1>@tonytech on WBA</h1>' | sudo tee /usr/share/nginx/vhost-port/index.html
+  ```
 
 *Note that the web servers should be installed as part of the activities included in the **Configuration Management** section and the virtual hosts should be created manually as a solution to the tasks in this section*
 
